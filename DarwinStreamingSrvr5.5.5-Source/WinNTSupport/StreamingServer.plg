@@ -1,0 +1,226 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: CommonUtilitiesLib - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\PHY\AppData\Local\Temp\RSP4E0A.tmp" with contents
+[
+/nologo /MTd /W3 /ZI /Od /I "../" /I "../WinNTSupport/" /I ".." /FI"../WinNTSupport/Win32header.h" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /c 
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\CommonUtilitiesLib\Task.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\CommonUtilitiesLib\TCPListenerSocket.cpp"
+]
+Creating command line "cl.exe @C:\Users\PHY\AppData\Local\Temp\RSP4E0A.tmp" 
+Creating temporary file "C:\Users\PHY\AppData\Local\Temp\RSP4E0B.tmp" with contents
+[
+/nologo /out:"CommonUtilitiesLib.lib" 
+".\Debug\atomic.obj"
+".\Debug\base64.obj"
+".\Debug\ConfParser.obj"
+".\Debug\DateTranslator.obj"
+".\Debug\EventContext.obj"
+".\Debug\getopt.obj"
+".\Debug\GetWord.obj"
+".\Debug\IdleTask.obj"
+".\Debug\md5.obj"
+".\Debug\md5digest.obj"
+".\Debug\MyAssert.obj"
+".\Debug\OS.obj"
+".\Debug\OSBufferPool.obj"
+".\Debug\OSCodeFragment.obj"
+".\Debug\OSCond.obj"
+".\Debug\OSFileSource.obj"
+".\Debug\OSHeap.obj"
+".\Debug\OSMutex.obj"
+".\Debug\OSMutexRW.obj"
+".\Debug\OSQueue.obj"
+".\Debug\OSRef.obj"
+".\Debug\OSThread.obj"
+".\Debug\ResizeableStringFormatter.obj"
+".\Debug\SDPUtils.obj"
+".\Debug\Socket.obj"
+".\Debug\SocketUtils.obj"
+".\Debug\StringFormatter.obj"
+".\Debug\StringParser.obj"
+".\Debug\StringTranslator.obj"
+".\Debug\StrPtrLen.obj"
+".\Debug\Task.obj"
+".\Debug\TCPListenerSocket.obj"
+".\Debug\TCPSocket.obj"
+".\Debug\TimeoutTask.obj"
+".\Debug\Trim.obj"
+".\Debug\UDPDemuxer.obj"
+".\Debug\UDPSocket.obj"
+".\Debug\UDPSocketPool.obj"
+".\Debug\UserAgentParser.obj"
+".\Debug\win32ev.obj"
+]
+Creating command line "link.exe -lib @C:\Users\PHY\AppData\Local\Temp\RSP4E0B.tmp"
+<h3>Output Window</h3>
+Compiling...
+Task.cpp
+TCPListenerSocket.cpp
+Generating Code...
+Creating library...
+<h3>
+--------------------Configuration: SafeInternalStdLib - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "link.exe -lib /nologo /out:"..\WinNTSupport\Debug\SafeInternalStdLib.lib"  ".\Debug\InternalStdLib.obj" "\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\CommonUtilitiesLib\CommonUtilitiesLib.lib" "
+<h3>Output Window</h3>
+Creating library...
+<h3>
+--------------------Configuration: QTFileLib - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\PHY\AppData\Local\Temp\RSP5679.tmp" with contents
+[
+/nologo /out:"Debug\QTFileLib.lib" 
+".\Debug\QTAtom.obj"
+".\Debug\QTAtom_dref.obj"
+".\Debug\QTAtom_elst.obj"
+".\Debug\QTAtom_hinf.obj"
+".\Debug\QTAtom_mdhd.obj"
+".\Debug\QTAtom_mvhd.obj"
+".\Debug\QTAtom_stco.obj"
+".\Debug\QTAtom_stsc.obj"
+".\Debug\QTAtom_stsd.obj"
+".\Debug\QTAtom_stss.obj"
+".\Debug\QTAtom_stsz.obj"
+".\Debug\QTAtom_stts.obj"
+".\Debug\QTAtom_tkhd.obj"
+".\Debug\QTAtom_tref.obj"
+".\Debug\QTFile.obj"
+".\Debug\QTFile_FileControlBlock.obj"
+".\Debug\QTHintTrack.obj"
+".\Debug\QTRTPFile.obj"
+".\Debug\QTTrack.obj"
+".\Debug\RTPMetaInfoPacket.obj"
+"\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\APIStubLib\Debug\APIStubLib.lib"
+"\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\WinNTSupport\Debug\SafeInternalStdLib.lib"
+]
+Creating command line "link.exe -lib @C:\Users\PHY\AppData\Local\Temp\RSP5679.tmp"
+<h3>Output Window</h3>
+Creating library...
+<h3>
+--------------------Configuration: StreamingServer - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\PHY\AppData\Local\Temp\RSP5745.tmp" with contents
+[
+/nologo /MTd /W3 /ZI /Od /I "../" /I "../Server.tproj/" /I "../CommonUtilitiesLib/" /I "../QTFileLib/" /I "../RTPMetaInfoLib/" /I "../PrefsSourceLib/" /I "../APIModules/" /I "../APIStubLib/" /I "../APICommonCode/" /I "../HTTPUtilitiesLib/" /I "../RTCPUtilitiesLib/" /I "../RTSPClientLib/" /I "../APIModules/QTSSFileModule/" /I "../APIModules/QTSSHttpFileModule/" /I "../APIModules/QTSSAccessModule/" /I "../APIModules/QTSSAccessLogModule/" /I "../APIModules/QTSSPosixFileSysModule/" /I "../APIModules/QTSSAdminModule/" /I "../APIModules/QTSSReflectorModule/" /I "../APIModules/QTSSWebStatsModule/" /I "../APIModules/QTSSWebDebugModule/" /I "../APIModules/QTSSFlowControlModule/" /I "../APIModules/QTSSMP3StreamingModule" /FI"../WinNTSupport/Win32header.h" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "DSS_USE_API_CALLBACKS" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /c 
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\QTSSCallbacks.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\QTSServer.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\QTSServerInterface.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTCPTask.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTPPacketResender.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTPSession.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTPSessionInterface.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTPStream.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTSPRequest.cpp"
+"C:\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\Server.tproj\RTSPSession.cpp"
+]
+Creating command line "cl.exe @C:\Users\PHY\AppData\Local\Temp\RSP5745.tmp" 
+Creating temporary file "C:\Users\PHY\AppData\Local\Temp\RSP5746.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib oleaut32.lib ws2_32.lib wsock32.lib winmm.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/DarwinStreamingServer.pdb" /debug /machine:I386 /out:"..\WinNTSupport\Debug\DarwinStreamingServer.exe" /pdbtype:sept 
+".\Debug\QTSSReflectorModule.obj"
+".\Debug\QTSSRelayModule.obj"
+".\Debug\RCFSourceInfo.obj"
+".\Debug\ReflectorSession.obj"
+".\Debug\ReflectorStream.obj"
+".\Debug\RelayOutput.obj"
+".\Debug\RelaySDPSourceInfo.obj"
+".\Debug\RelaySession.obj"
+".\Debug\RTPSessionOutput.obj"
+".\Debug\RTSPSourceInfo.obj"
+".\Debug\SequenceNumberMap.obj"
+".\Debug\QTSSMP3StreamingModule.obj"
+".\Debug\AccessChecker.obj"
+".\Debug\AdminElementNode.obj"
+".\Debug\AdminQuery.obj"
+".\Debug\QTSSAccessLogModule.obj"
+".\Debug\QTSSAccessModule.obj"
+".\Debug\QTSSAdminModule.obj"
+".\Debug\QTSSFileModule.obj"
+".\Debug\QTSSFlowControlModule.obj"
+".\Debug\QTSSPosixFileSysModule.obj"
+".\Debug\QTSSWebDebugModule.obj"
+".\Debug\QTSSWebStatsModule.obj"
+".\Debug\GenerateXMLPrefs.obj"
+".\Debug\OSMemory.obj"
+".\Debug\QTSSCallbacks.obj"
+".\Debug\QTSSDataConverter.obj"
+".\Debug\QTSSDictionary.obj"
+".\Debug\QTSSErrorLogModule.obj"
+".\Debug\QTSServer.obj"
+".\Debug\QTSServerInterface.obj"
+".\Debug\QTSServerPrefs.obj"
+".\Debug\QTSSExpirationDate.obj"
+".\Debug\QTSSFile.obj"
+".\Debug\QTSSMessages.obj"
+".\Debug\QTSSModule.obj"
+".\Debug\QTSSPrefs.obj"
+".\Debug\QTSSSocket.obj"
+".\Debug\RTCPTask.obj"
+".\Debug\RTPBandwidthTracker.obj"
+".\Debug\RTPPacketResender.obj"
+".\Debug\RTPSession.obj"
+".\Debug\RTPSessionInterface.obj"
+".\Debug\RTPStream.obj"
+".\Debug\RTSPProtocol.obj"
+".\Debug\RTSPRequest.obj"
+".\Debug\RTSPRequestInterface.obj"
+".\Debug\RTSPRequestStream.obj"
+".\Debug\RTSPResponseStream.obj"
+".\Debug\RTSPSession.obj"
+".\Debug\RTSPSessionInterface.obj"
+".\Debug\RunServer.obj"
+".\Debug\win32main.obj"
+".\Debug\ClientSocket.obj"
+".\Debug\RTSPClient.obj"
+".\Debug\RTCPAckPacket.obj"
+".\Debug\RTCPAPPPacket.obj"
+".\Debug\RTCPPacket.obj"
+".\Debug\RTCPSRPacket.obj"
+".\Debug\FilePrefsSource.obj"
+".\Debug\HTTPProtocol.obj"
+".\Debug\HTTPRequest.obj"
+".\Debug\InternalStdLib.obj"
+".\Debug\QTSSUserProfile.obj"
+".\Debug\RTPOverbufferWindow.obj"
+".\Debug\XMLParser.obj"
+".\Debug\XMLPrefsParser.obj"
+"\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\CommonUtilitiesLib\CommonUtilitiesLib.lib"
+"\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\APICommonCode\Debug\APICommonCode.lib"
+"\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\APIStubLib\Debug\APIStubLib.lib"
+".\Debug\SafeInternalStdLib.lib"
+"\Users\PHY\Desktop\毕设\1_mid-progress\DarwinStreamingSrvr5.5.5-Source\DarwinStreamingSrvr5.5.5-Source\QTFileLib\Debug\QTFileLib.lib"
+]
+Creating command line "link.exe @C:\Users\PHY\AppData\Local\Temp\RSP5746.tmp"
+<h3>Output Window</h3>
+Compiling...
+QTSSCallbacks.cpp
+QTSServer.cpp
+QTSServerInterface.cpp
+c:\users\phy\desktop\毕设\1_mid-progress\darwinstreamingsrvr5.5.5-source\darwinstreamingsrvr5.5.5-source\server.tproj\qtsserverinterface.cpp(433) : warning C4244: 'initializing' : conversion from 'unsigned int' to 'float', possible loss of data
+RTCPTask.cpp
+RTPPacketResender.cpp
+RTPSession.cpp
+RTPSessionInterface.cpp
+RTPStream.cpp
+RTSPRequest.cpp
+RTSPSession.cpp
+Generating Code...
+Linking...
+   Creating library ..\WinNTSupport\Debug\DarwinStreamingServer.lib and object ..\WinNTSupport\Debug\DarwinStreamingServer.exp
+
+
+
+<h3>Results</h3>
+DarwinStreamingServer.exe - 0 error(s), 1 warning(s)
+</pre>
+</body>
+</html>
