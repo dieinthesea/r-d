@@ -445,7 +445,7 @@ Bool16 FileExists(char* pathBuff)
     
     if (0 != stat(pathBuff,&statData) ) // something wrong
     {
-        if ( OSThread::GetErrno() == ENOENT )   // doesn't exist
+        if ( OSThread::GetErrno() == ENOENT )   // file doesn't exist
             result = false;
     }
     
