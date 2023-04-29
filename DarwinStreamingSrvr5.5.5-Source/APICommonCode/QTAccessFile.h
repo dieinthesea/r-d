@@ -1,32 +1,15 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+The main methods of this class are: initialising the static character array sWhitespaceAndGreaterThanMask;
+getting a copy of the user name; getting a copy of the access file; checking if access is allowed and authorising the request.
+
+The class also contains static member variables sQTAccessFileName and AllocatedName to manage the names of QTAccess files 
+and uses a mutex lock sAccessFileMutex to secure access in a multi-threaded environment.
+*/
+
 /*
     File:       QTAccessFile.h
 
-    Contains:   This object contains an interface for finding and parsing qtaccess files.
-                
+    Contains:   This object contains an interface for finding and parsing qtaccess files.                
 
 */
 #ifndef _QT_ACCESS_FILE_H_
@@ -45,10 +28,6 @@ class QTAccessFile
         static void Initialize();
         
         static char * GetUserNameCopy(QTSS_UserProfileObject inUserProfile);
-
-        //GetGroupsArrayCopy 
-        //
-        // GetGroupsArrayCopy allocates outGroupCharPtrArray. Caller must "delete [] outGroupCharPtrArray" when done.
         static char*  GetAccessFile_Copy( const char* movieRootDir, const char* dirPath);
 
         //AccessAllowed
@@ -65,9 +44,7 @@ class QTAccessFile
                                     );
 
         static void SetAccessFileName(const char *inQTAccessFileName); //makes a copy and stores it
-        static char* GetAccessFileName() { return sQTAccessFileName; }; // a reference. Don't delete!
-        
-                // allocates memory for outUsersFilePath and outGroupsFilePath - remember to delete
+        static char* GetAccessFileName() { return sQTAccessFileName; }; 
                 // returns the auth scheme
                 static QTSS_AuthScheme FindUsersAndGroupsFilesAndAuthScheme(char* inAccessFilePath, QTSS_ActionFlags inAction, char** outUsersFilePath, char** outGroupsFilePath);
                 
