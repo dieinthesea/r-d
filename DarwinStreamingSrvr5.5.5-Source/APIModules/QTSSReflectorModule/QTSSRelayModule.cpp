@@ -1,35 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       QTSSReflectorModule.cpp
-
-    Contains:   Implementation of QTSSReflectorModule class. 
-                    
-    
-    
-*/
 
 #include "QTSSRelayModule.h"
 #include "QTSSModuleUtils.h"
@@ -175,12 +143,6 @@ static Bool16 CheckDNSNames(XMLParser* prefsFile, Bool16 doResolution);
 static void ResolveDNSAddr(XMLTag* tag);
 
 
-// DNS Resolution can block a thread for a long time (there's no async version), and on X
-// we only have 1 task thread, so the resolution must be on another thread.  However, we
-// want to do the rest of the RereadPrefs on the main task thread, so we need both a thread
-// and a task.  The thread resolves the addresses and fires the task, the task deletes
-// the thread and is deleted itself as soon as it's done.
-
 class DNSResolverThread : public OSThread
 {
     class RereadPrefsTask : public Task
@@ -195,10 +157,7 @@ class DNSResolverThread : public OSThread
                 delete sResolverThread;
                 sResolverThread = NULL;
                 delete sRelayPrefsFile;
-                
-                // we need to see if reread prefs has been called again while we were resolving.
-                // If so, it just exited without doing anything, and we need to start over to pick
-                // up whatever changed.
+                //to see if reread prefs have been called again
                 sResolverMutex.Lock();
                 sRelayPrefsFile = NULL;
                 if (sDoResolveAgain)
