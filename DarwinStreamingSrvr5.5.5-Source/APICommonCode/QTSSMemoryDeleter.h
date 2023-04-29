@@ -1,27 +1,15 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+    A template class called QTSSMemoryDeleter is defined to delete heap objects at the end of their life cycle. The class has the following methods:
+
+    Constructor: initialises the fT member to the passed pointer parameter.
+    Destructor: calls the QTSS_Delete method to delete the heap object pointed to by fT at the end of the object's life cycle.
+    ClearObject method: sets the fT member to NULL to prevent the object from being deleted at the end of its life cycle.
+    SetObject method: sets the fT member to the passed pointer parameter, but requires fT to be NULL to ensure that objects are not accidentally deleted.
+    GetObject method: returns a pointer to the object pointed to by the fT member.
+    Type conversion operator: allows the QTSSMemoryDeleter object to be converted to a pointer of type T.
+    In addition, the code defines a QTSSCharArrayDeleter type for deleting heap objects of type char.
+  
+*/
 /*
     File:       QTSSMemoryDeleter.h
 
