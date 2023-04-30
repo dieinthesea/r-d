@@ -1,36 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       EventContext.cpp
-
-    Contains:   Impelments object in .h file
-                    
-    
-    
-*/
-
 #include "EventContext.h"
 #include "OSThread.h"
 #include "atomic.h"
@@ -43,7 +10,7 @@
 #endif
 
 #if MACOSXEVENTQUEUE
-#include "tempcalls.h" //includes MacOS X prototypes of event queue functions
+#include "tempcalls.h"
 #endif
 
 #define EVENT_CONTEXT_DEBUG 0
@@ -53,7 +20,7 @@
 #endif
 
 #ifdef __Win32__
-unsigned int EventContext::sUniqueID = WM_USER; // See commentary in RequestEvent
+unsigned int EventContext::sUniqueID = WM_USER; 
 #else
 unsigned int EventContext::sUniqueID = 1;
 #endif
@@ -94,19 +61,12 @@ void EventContext::Cleanup()
             fEventThread->fRefTable.UnRegister(&fRef);
 
 #if !MACOSXEVENTQUEUE
-            select_removeevent(fFileDesc);//The eventqueue / select shim requires this
+            select_removeevent(fFileDesc);
 #ifdef __Win32__
             err = ::closesocket(fFileDesc);
 #endif
 
 #else
-            //On Linux (possibly other UNIX implementations) you MUST NOT close the fd before
-            //removing the fd from the select mask, and having the select function wake up
-            //to register this fact. If you close the fd first, bad things may happen, like
-            //the socket not getting unbound from the port & IP addr.
-            //
-            //So, what we do is have the select thread itself call close. This is triggered
-            //by calling removeevent.
             err = ::close(fFileDesc);
 #endif      
         }
@@ -127,45 +87,30 @@ void EventContext::Cleanup()
 
 void EventContext::SnarfEventContext( EventContext &fromContext )
 {  
-    //+ show that we called watchevent
-    // copy the unique id
-    // set our fUniqueIDStr to the unique id
-    // copy the eventreq
-    // find the old event object
-    // show us as the object in the fRefTable
-    //      we take the OSRef from the old context, point it at our context
-    //
-    //TODO - this whole operation causes a race condition for Event posting
-    //  way up the chain we need to disable event posting
-    // or copy the posted events afer this op completes
-    
+
     fromContext.fFileDesc = kInvalidFileDesc;
     
-    fWatchEventCalled = fromContext.fWatchEventCalled; 
-    fUniqueID = fromContext.fUniqueID;
-    fUniqueIDStr.Set((char*)&fUniqueID, sizeof(fUniqueID)),
+    fWatchEventCalled = fromContext.fWatchEventCalled; //call watchevent
+    fUniqueID = fromContext.fUniqueID; // copy the unique id
+    fUniqueIDStr.Set((char*)&fUniqueID, sizeof(fUniqueID)), // set our fUniqueIDStr to the unique id
     
     ::memcpy( &fEventReq, &fromContext.fEventReq, sizeof( struct eventreq  ) );
 
     fRef.Set( fUniqueIDStr, this );
     fEventThread->fRefTable.Swap(&fRef);
     fEventThread->fRefTable.UnRegister(&fromContext.fRef);
+    // it may causes a race condition for Event posting, we need to disable event posting or copy the posted events afer this operation completes
 }
 
 void EventContext::RequestEvent(int theMask)
 {
 #if DEBUG
     fModwatched = true;
-#endif
-
-    //
-    // The first time this function gets called, we're supposed to
-    // call watchevent. Each subsequent time, call modwatch. That's
-    // the way the MacOS X event queue works.
-    
+#endif 
     if (fWatchEventCalled)
     {
         fEventReq.er_eventbits = theMask;
+//The first time this function gets called, call watchevent. Each subsequent time, call modwatch. 
 #if MACOSXEVENTQUEUE
         if (modwatch(&fEventReq, theMask) != 0)
 #else
@@ -178,13 +123,9 @@ void EventContext::RequestEvent(int theMask)
         //allocate a Unique ID for this socket, and add it to the ref table
         
 #ifdef __Win32__
-        //
-        // Kind of a hack. On Win32, the way that we pass around the unique ID is
-        // by making it the message ID of our Win32 message (see win32ev.cpp).
-        // Messages must be >= WM_USER. Hence this code to restrict the numberspace
-        // of our UniqueIDs. 
-        if (!compare_and_store(8192, WM_USER, &sUniqueID))  // Fix 2466667: message IDs above a
-            fUniqueID = (PointerSizedInt)atomic_add(&sUniqueID, 1);         // level are ignored, so wrap at 8192
+
+        if (!compare_and_store(8192, WM_USER, &sUniqueID))  
+            fUniqueID = (PointerSizedInt)atomic_add(&sUniqueID, 1);   
         else
             fUniqueID = (PointerSizedInt)WM_USER;
 #else
@@ -210,7 +151,6 @@ void EventContext::RequestEvent(int theMask)
 #else
         if (select_watchevent(&fEventReq, theMask) != 0)
 #endif  
-            //this should never fail, but if it does, cleanup.
             AssertV(false, OSThread::GetErrno());
             
     }
@@ -226,13 +166,11 @@ void EventThread::Entry()
         int theErrno = EINTR;
         while (theErrno == EINTR)
         {
-#if MACOSXEVENTQUEUE
+#if XEVENTQUEUE
             int theReturnValue = waitevent(&theCurrentEvent, NULL);
 #else
             int theReturnValue = select_waitevent(&theCurrentEvent, NULL);
 #endif  
-            //Sort of a hack. In the POSIX version of the server, waitevent can return
-            //an actual POSIX errorcode.
             if (theReturnValue >= 0)
                 theErrno = theReturnValue;
             else
@@ -241,11 +179,9 @@ void EventThread::Entry()
         
         AssertV(theErrno == 0, theErrno);
         
-        //ok, there's data waiting on this socket. Send a wakeup.
+        //If there's data waiting on this socket. Send a wakeup.
         if (theCurrentEvent.er_data != NULL)
         {
-            //The cookie in this event is an ObjectID. Resolve that objectID into
-            //a pointer.
             StrPtrLen idStr((char*)&theCurrentEvent.er_data, sizeof(theCurrentEvent.er_data));
             OSRef* ref = fRefTable.Resolve(&idStr);
             if (ref != NULL)
@@ -256,8 +192,7 @@ void EventThread::Entry()
 #endif
                 theContext->ProcessEvent(theCurrentEvent.er_eventbits);
                 fRefTable.Release(ref);
-                
-                
+               
             }
         }
 
