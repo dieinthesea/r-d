@@ -1,27 +1,7 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+ This class provides a number of methods to open, close, write and scroll log files. 
+ It also defines a number of static member variables and static methods to help manage the scrolling and timestamp formatting of log files.
+*/
 /*
     File:       QTSSRollingLog.h
 
@@ -53,12 +33,10 @@ class QTSSRollingLog : public Task
         //pass in whether you'd like the log roller to log errors.
         QTSSRollingLog();
         
-        //
         // Call this to delete. Closes the log and sends a kill event
         void    Delete()
             { CloseLog(false); this->Signal(Task::kKillEvent); }
         
-        //
         // Write a log message
         void    WriteToLog(char* inLogData, Bool16 allowLogToRoll);
         
@@ -67,16 +45,13 @@ class QTSSRollingLog : public Task
         //Returns true if no error, false otherwise
         Bool16  RollLog();
 
-        //
         // Call this to open the log file and begin logging     
         void EnableLog( Bool16 appendDotLog = true);
         
-                //
         // Call this to close the log
         // (pass leaveEnabled as true when we are temporarily closing.)
         void CloseLog( Bool16 leaveEnabled = false);
 
-        //
         //mainly to check and see if errors occurred
         Bool16  IsLogEnabled();
         
@@ -103,7 +78,6 @@ class QTSSRollingLog : public Task
     
     protected:
 
-        //
         // Task object. Do not delete directly
         virtual ~QTSSRollingLog();
 
@@ -119,7 +93,6 @@ class QTSSRollingLog : public Task
 
     private:
     
-        //
         // Run function to roll log right at midnight   
         virtual SInt64      Run();
 
