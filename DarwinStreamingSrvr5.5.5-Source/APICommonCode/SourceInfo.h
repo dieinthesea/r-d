@@ -1,27 +1,10 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+A class called "SourceInfo" is defined which contains metadata for some media streams.
+These streams can be recorded, repeated and/or forwarded to other locations.
+This class provides a number of methods to obtain and set this metadata.
+Examples include getting and setting the IP address and port number of the stream, getting and setting the timestamp of the stream, etc.
+In addition, the class has a number of helper functions, such as determining whether an IP address is reflectable or not.
+*/
 /*
     File:       SourceInfo.h
 
@@ -31,8 +14,6 @@
                 
                 For instance, the derived object SDPSourceInfo parses an
                 SDP file and retrieves all the SourceInfo information from that file.
-                    
-    
 
 */
 
