@@ -1,36 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       DateTranslator.h
-
-    Contains:   Efficient routines & data structures for converting from
-                RFC 1123 compliant date strings to local file system dates & vice versa.
-
-    
-*/
-
 #include "DateTranslator.h"
 
 #include <time.h>
@@ -40,11 +7,6 @@
 
 #include "StringParser.h"
 #include "StrPtrLen.h"
-
-// If you assign values of 0 - 25 for all the letters, and sum up the values of
-// the letters in each month, you get a table that looks like this. For instance,
-// "Jul" = 9 + 20 + 11 = 40. The value of July in a C tm struct is 6, so position
-// 40 = 6 in this array.
 
 const UInt32 kMonthHashTable[] =
 {
@@ -59,9 +21,6 @@ const UInt32 kMonthHashTableSize = 49;
 
 SInt64  DateTranslator::ParseDate(StrPtrLen* inDateString)
 {
-    //SEE RFC 1123 for details on the date string format
-    //ex: Mon, 04 Nov 1996 21:42:17 GMT
-
     // Parse the date buffer, filling out a tm struct
     struct tm theDateStruct;
     ::memset(&theDateStruct, 0, sizeof(theDateStruct));
@@ -71,16 +30,14 @@ SInt64  DateTranslator::ParseDate(StrPtrLen* inDateString)
         return 0;
     
     StringParser theDateParser(inDateString);
-        
-    // the day of the week is redundant... we can skip it!
+    
     theDateParser.ConsumeLength(NULL, 5);
     
     // We are at the date now.
     theDateStruct.tm_mday = theDateParser.ConsumeInteger(NULL);
     theDateParser.ConsumeWhitespace();
     
-    // We are at the month now. Use our hand-crafted perfect hash table
-    // to get the right value to place in the tm struct
+    // We are at the month now.
     if (theDateParser.GetDataRemaining() < 4)
         return 0;
     
@@ -100,11 +57,11 @@ SInt64  DateTranslator::ParseDate(StrPtrLen* inDateString)
     // Skip over the date
     theDateParser.ConsumeLength(NULL, 4);   
     
-    // Grab the year (years since 1900 is what the tm struct wants)
+    // Grab the year(the year after1900)
     theDateStruct.tm_year = theDateParser.ConsumeInteger(NULL) - 1900;
     theDateParser.ConsumeWhitespace();
 
-    // Now just grab hour, minute, second
+    // Grag the hour, minute, second
     theDateStruct.tm_hour = theDateParser.ConsumeInteger(NULL);
     theDateStruct.tm_hour += OS::GetGMTOffset();
     
@@ -115,7 +72,7 @@ SInt64  DateTranslator::ParseDate(StrPtrLen* inDateString)
 
     theDateStruct.tm_sec = theDateParser.ConsumeInteger(NULL);
 
-    // Ok, we've filled out the tm struct completely, now convert it to a time_t
+    //convert the completed tm struct to a time_t
     time_t theTime = ::mktime(&theDateStruct);
     return (SInt64)theTime * 1000; // convert to a time value in our timebase.
 }
