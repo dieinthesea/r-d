@@ -1,37 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       OS.cpp
-
-    Contains:   OS utility functions
-
-
-        
-    
-*/
-
 #include <stdlib.h>
 #include "SafeStdLib.h"
 #include <string.h>
@@ -59,7 +25,6 @@
 
 #ifndef __COREFOUNDATION__
 #include <CoreFoundation/CoreFoundation.h>
-//extern "C" { void Microseconds (UnsignedWide *microTickCount); }
 #endif
 
 #endif
@@ -99,9 +64,6 @@ void OS::Initialize()
     Assert (sInitialMsec == 0);  // do only once
     if (sInitialMsec != 0) return;
 
-    //setup t0 value for msec since 1900
-
-    //t.tv_sec is number of seconds since Jan 1, 1970. Convert to seconds since 1900    
     SInt64 the1900Sec = (SInt64) (24 * 60 * 60) * (SInt64) ((70 * 365) + 17) ;
     sMsecSince1900 = the1900Sec * 1000;
     
@@ -109,11 +71,10 @@ void OS::Initialize()
     sCompareWrap = (SInt64) 0xffffffff << 32;
     sLastTimeMilli = 0;
     
-    sInitialMsec = OS::Milliseconds(); //Milliseconds uses sInitialMsec so this assignment is valid only once.
+    sInitialMsec = OS::Milliseconds(); 
 
-    sMsecSince1970 = ::time(NULL);  // POSIX time always returns seconds since 1970
-    sMsecSince1970 *= 1000;         // Convert to msec
-    
+    sMsecSince1970 = ::time(NULL); 
+    sMsecSince1970 *= 1000;       
 
 
 #if DEBUG || __Win32__ 
@@ -135,21 +96,18 @@ SInt64 OS::Milliseconds()
     SInt64 scalarMicros = theMicros.hi;
     scalarMicros <<= 32;
     scalarMicros += theMicros.lo;
-    scalarMicros = ((scalarMicros / 1000) - sInitialMsec) + sMsecSince1970; // convert to msec
+    scalarMicros = ((scalarMicros / 1000) - sInitialMsec) + sMsecSince1970;
 
 #if DEBUG
     static SInt64 sLastMillis = 0;
-    //Assert(scalarMicros >= sLastMillis); // currently this fails on dual processor machines
+    //Assert(scalarMicros >= sLastMillis); 
     sLastMillis = scalarMicros;
 #endif
     return scalarMicros;
 */
 #if __Win32__
     OSMutexLocker locker(sLastMillisMutex);
-    // curTimeMilli = timeGetTime() + ((sLastTimeMilli/ 2^32) * 2^32)
-    // using binary & to reduce it to one operation from two
-    // sCompareWrap and sWrapTime are constants that are never changed
-    // sLastTimeMilli is updated with the curTimeMilli after each call to this function
+    
     SInt64 curTimeMilli = (UInt32) ::timeGetTime() + (sLastTimeMilli & sCompareWrap);
     if((curTimeMilli - sLastTimeMilli) < 0)
     {
@@ -157,13 +115,7 @@ SInt64 OS::Milliseconds()
     }
     sLastTimeMilli = curTimeMilli;
     
-    // For debugging purposes
-    //SInt64 tempCurMsec = (curTimeMilli - sInitialMsec) + sMsecSince1970;
-    //SInt32 tempCurSec = tempCurMsec / 1000;
-    //char buffer[kTimeStrSize];
-    //qtss_printf("OS::MilliSeconds current time = %s\n", qtss_ctime(&tempCurSec, buffer, sizeof(buffer)));
-
-    return (curTimeMilli - sInitialMsec) + sMsecSince1970; // convert to application time
+    return (curTimeMilli - sInitialMsec) + sMsecSince1970; 
 #else
     struct timeval t;
     struct timezone tz;
@@ -182,18 +134,10 @@ SInt64 OS::Milliseconds()
 
 SInt64 OS::Microseconds()
 {
-/*
-#if __MacOSX__
-    UnsignedWide theMicros;
-    ::Microseconds(&theMicros);
-    SInt64 theMillis = theMicros.hi;
-    theMillis <<= 32;
-    theMillis += theMicros.lo;
-    return theMillis;
-*/
+
 #if __Win32__
-    SInt64 curTime = (SInt64) ::timeGetTime(); // unsigned long system time in milliseconds
-    curTime -= sInitialMsec; // convert to application time
+    SInt64 curTime = (SInt64) ::timeGetTime(); 
+    curTime -= sInitialMsec; 
     curTime *= 1000; // convert to microseconds                   
     return curTime;
 #else
@@ -228,7 +172,7 @@ SInt32 OS::GetGMTOffset()
     if (err != 0)
         return 0;
         
-    return ((tz.tz_minuteswest / 60) * -1);//return hours before or after GMT
+    return ((tz.tz_minuteswest / 60) * -1);
 #endif
 }
 
@@ -263,7 +207,7 @@ OS_Error OS::MakeDir(char *inPath)
     struct stat theStatBuffer;
     if (::stat(inPath, &theStatBuffer) == -1)
     {
-        //this directory doesn't exist, so let's try to create it
+        //create a directory
 #ifdef __Win32__
         if (::mkdir(inPath) == -1)
 #else
@@ -272,11 +216,11 @@ OS_Error OS::MakeDir(char *inPath)
             return (OS_Error)OSThread::GetErrno();
     }
 #ifdef __Win32__
-    else if (!(theStatBuffer.st_mode & _S_IFDIR)) // MSVC++ doesn't define the S_ISDIR macro
-        return EEXIST; // there is a file at this point in the path!
+    else if (!(theStatBuffer.st_mode & _S_IFDIR))
+        return EEXIST; // there is a file at this point in the path
 #else
     else if (!S_ISDIR(theStatBuffer.st_mode))
-        return EEXIST;//there is a file at this point in the path!
+        return EEXIST;//there is a file at this point in the path
 #endif
 
     //directory exists
@@ -287,10 +231,10 @@ OS_Error OS::RecursiveMakeDir(char *inPath)
 {
     Assert(inPath != NULL);
     
-    //iterate through the path, replacing '/' with '\0' as we go
+   
     char *thePathTraverser = inPath;
     
-    //skip over the first / in the path.
+   
     if (*thePathTraverser == kPathDelimiterChar)
         thePathTraverser++;
         
@@ -298,13 +242,10 @@ OS_Error OS::RecursiveMakeDir(char *inPath)
     {
         if (*thePathTraverser == kPathDelimiterChar)
         {
-            //we've found a filename divider. Now that we have a complete
-            //filename, see if this partial path exists.
-            
-            //make the partial path into a C string
+           
             *thePathTraverser = '\0';
             OS_Error theErr = MakeDir(inPath);
-            //there is a directory here. Just continue in our traversal
+           
             *thePathTraverser = kPathDelimiterChar;
 
             if (theErr != OS_NoErr)
@@ -313,14 +254,14 @@ OS_Error OS::RecursiveMakeDir(char *inPath)
         thePathTraverser++;
     }
     
-    //need to create the last directory in the path
+   
     return MakeDir(inPath);
 }
 
 Bool16 OS::ThreadSafe()
 {
 
-#if (__MacOSX__) // check for version 7 or greater for thread safe stdlib
+#if (__MacOSX__) 
 	char releaseStr[32] = "";
   	size_t strLen = sizeof(releaseStr);
 	int mib[2];
@@ -333,14 +274,14 @@ Bool16 OS::ThreadSafe()
     {
 		StrPtrLen rStr(releaseStr,strLen);
 		char* endMajor = rStr.FindString(".");
-		if (endMajor != NULL) // truncate to an int value.
+		if (endMajor != NULL) 
 			*endMajor = 0;
 			
-		if (::strlen(releaseStr) > 0) //convert to an int
+		if (::strlen(releaseStr) > 0)
 			::sscanf(releaseStr, "%lu", &majorVers);
 	}
-	if (majorVers < 7) // less than OS X Panther 10.3 
-		return false; // force 1 worker thread because < 10.3 means std c lib is not thread safe.
+	if (majorVers < 7) 
+		return false; 
 	
 #endif
 
@@ -389,14 +330,14 @@ UInt32  OS::GetNumProcessors()
     {
         cpuInfoFileParser.GetThruEOL(&line);    // Read each line   
         StringParser lineParser(&line);
-        lineParser.ConsumeWhitespace();         //skip over leading whitespace
+        lineParser.ConsumeWhitespace();        
 
         if (lineParser.GetDataRemaining() == 0) // must be an empty line
             continue;
 
         lineParser.ConsumeUntilWhitespace(&word);
                
-        if ( word.Equal("processor") ) // found a processor as first word in line
+        if ( word.Equal("processor") ) 
         {   numCPUs ++; 
         }
     }
@@ -418,18 +359,18 @@ UInt32  OS::GetNumProcessors()
     while((::fgets(linebuff, sizeof(linebuff -1), p)) > 0)
     {
         StringParser lineParser(&line);
-        lineParser.ConsumeWhitespace(); //skip over leading whitespace
+        lineParser.ConsumeWhitespace(); 
 
         if (lineParser.GetDataRemaining() == 0) // must be an empty line
             continue;
 
         lineParser.ConsumeUntilWhitespace(&word);
 
-        if ( word.Equal("NumCPU")) // found a tag as first word in line
+        if ( word.Equal("NumCPU")) 
         {
             lineParser.GetThru(NULL,'=');
-            lineParser.ConsumeWhitespace();  //skip over leading whitespace
-            lineParser.ConsumeUntilWhitespace(&word); //read the number of cpus
+            lineParser.ConsumeWhitespace();  
+            lineParser.ConsumeUntilWhitespace(&word);
             if (word.Len > 0)
                 ::sscanf(word.Ptr, "%lu", &numCPUs);
 
@@ -461,7 +402,7 @@ UInt32  OS::GetNumProcessors()
 //CISCO provided fix for integer + fractional fixed64.
 SInt64 OS::TimeMilli_To_Fixed64Secs(SInt64 inMilliseconds)
 {
-       SInt64 result = inMilliseconds / 1000;  // The result is in lower bits.
+       SInt64 result = inMilliseconds / 1000; 
        result <<= 32;  // shift it to higher 32 bits
        // Take the remainder (rem = inMilliseconds%1000) and multiply by
        // 2**32, divide by 1000, effectively this gives (rem/1000) as a
