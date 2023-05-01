@@ -1,27 +1,12 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+It is related to access logging and its main role is to check, scroll and record access logs.
+Specifically, an access log object called sAccessLog is first defined in the code to log request and response information from the client. 
+The CheckAccessLogState function is then used to check that the logging state of the access log is in sync with the user's settings, 
+and to create or delete access log objects if required.
+The RollAccessLog function is used to roll the access log, i.e. close the current access log file and back it up, then create a new access log file. 
+The LogCheckTask class is used to periodically check if the access log needs to be rolled, and if so, to call the RollAccessLog function to do so.
+Finally, the QTSSAccessLog class is used to log client requests and responses to the access log, including server name, version number, logging time, etc.
+*/
  
 /*
     File:       QTSSAccessLogModule.cpp
@@ -981,7 +966,7 @@ c-playerversion player version   Custom 3.0.0.1212
 c-playerlanguage    player language  Custom EN   [two letter country code]  y
 cs(User-Agent)  user agent  W3C Mozilla/2.0+(compatible;+MSIE+3.0;+Windows 95)  - this is a sample user-agent string    n
 cs(Referer)     referring URL   W3C http://www.gte.com  n
-c-hostexe   host program     Custom iexplore.exe   [iexplore.exe, netscape.exe, dshow.exe, nsplay.exe, vb.exe, etc‰]    n
+c-hostexe   host program     Custom iexplore.exe   [iexplore.exe, netscape.exe, dshow.exe, nsplay.exe, vb.exe, etc√§]    n
 c-hostexever    version  Custom 4.70.1215   y
 c-os    os   Custom Windows   [Windows, Windows NT, Unix-[flavor], Mac-[flavor]]    y
 c-osversion os version   Custom 4.0.0.1212  n
