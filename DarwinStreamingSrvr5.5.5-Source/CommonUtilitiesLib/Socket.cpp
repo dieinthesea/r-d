@@ -1,36 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       Socket.cpp
-
-    Contains:   implements Socket class
-                    
-
-    
-*/
-
 #include <string.h>
 
 #ifndef __Win32__
@@ -53,7 +20,7 @@
 	#include <netlog.h>
 #else
 	#if defined(__Win32__) || defined(__sgi__) || defined(__osf__) || defined(__hpux__)		
-		typedef int socklen_t; // missing from some platform includes
+		typedef int socklen_t; 
 	#endif
 #endif
 
@@ -88,7 +55,6 @@ OS_Error Socket::Open(int theType)
     if (fFileDesc == EventContext::kInvalidFileDesc)
         return (OS_Error)OSThread::GetErrno();
             
-    //
     // Setup this socket's event context
     if (fState & kNonBlockingSocketType)
         this->InitNonBlocking(fFileDesc);   
@@ -204,8 +170,6 @@ OS_Error Socket::Bind(UInt32 addr, UInt16 port)
 
 StrPtrLen*  Socket::GetLocalAddrStr()
 {
-    //Use the array of IP addr strings to locate the string formatted version
-    //of this IP address.
     if (fLocalAddrStrPtr == NULL)
     {
         for (UInt32 x = 0; x < SocketUtils::GetNumIPAddrs(); x++)
@@ -220,7 +184,7 @@ StrPtrLen*  Socket::GetLocalAddrStr()
 
 #if SOCKET_DEBUG    
     if (fLocalAddrStrPtr == NULL) 
-    {   // shouldn't happen but no match so it was probably a failed socket connection or accept. addr is probably 0.
+    {   //probably a failed socket connection or accept. addr is probably 0.
 
         fLocalAddrBuffer[0]=0;
         fLocalAddrStrPtr = &fLocalAddrStr;
@@ -291,8 +255,7 @@ OS_Error Socket::Send(const char* inData, const UInt32 inLength, UInt32* outLeng
     } while((err == -1) && (OSThread::GetErrno() == EINTR));
     if (err == -1)
     {
-        //Are there any errors that can happen if the client is connected?
-        //Yes... EAGAIN. Means the socket is now flow-controleld
+	//the socket is now flow-controleld
         int theErr = OSThread::GetErrno();
         if ((theErr != EAGAIN) && (this->IsConnected()))
             fState ^= kConnected;//turn off connected state flag
@@ -318,13 +281,11 @@ OS_Error Socket::WriteV(const struct iovec* iov, const UInt32 numIOvecs, UInt32*
         if (err == 0)
             err = theBytesSent;
 #else
-       err = ::writev(fFileDesc, iov, numIOvecs);//flags??
+       err = ::writev(fFileDesc, iov, numIOvecs);
 #endif
     } while((err == -1) && (OSThread::GetErrno() == EINTR));
     if (err == -1)
     {
-        // Are there any errors that can happen if the client is connected?
-        // Yes... EAGAIN. Means the socket is now flow-controleld
         int theErr = OSThread::GetErrno();
         if ((theErr != EAGAIN) && (this->IsConnected()))
             fState ^= kConnected;//turn off connected state flag
@@ -344,16 +305,14 @@ OS_Error Socket::Read(void *buffer, const UInt32 length, UInt32 *outRecvLenP)
     if (!(fState & kConnected))
         return (OS_Error)ENOTCONN;
             
-    //int theRecvLen = ::recv(fFileDesc, buffer, length, 0);//flags??
     int theRecvLen;
     do {
-       theRecvLen = ::recv(fFileDesc, (char*)buffer, length, 0);//flags??
+       theRecvLen = ::recv(fFileDesc, (char*)buffer, length, 0);
     } while((theRecvLen == -1) && (OSThread::GetErrno() == EINTR));
 
     if (theRecvLen == -1)
     {
-        // Are there any errors that can happen if the client is connected?
-        // Yes... EAGAIN. Means the socket is now flow-controleld
+
         int theErr = OSThread::GetErrno();
         if ((theErr != EAGAIN) && (this->IsConnected()))
             fState ^= kConnected;//turn off connected state flag
