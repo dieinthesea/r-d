@@ -1,37 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       osfile.cpp
-
-    Contains:   simple file abstraction
-                    
-    
-    
-    
-*/
-
 #include <stdio.h>
 #include <string.h>
 
@@ -228,8 +194,8 @@ void FileMap::AllocateBufferMap(UInt32 inUnitSizeInK, UInt32 inNumBuffSizeUnits,
         if( inNumBuffSizeUnits > inMaxBitRateBuffSizeInBlocks) // max is 8 * buffUnit Size (32k) = 256K
         {   inNumBuffSizeUnits = inMaxBitRateBuffSizeInBlocks;
         }
-    } //else the inNumBuffSizeUnits is explicitly defined so just use that value
-    
+    } 
+	
     if( inNumBuffSizeUnits < 1 )
         inNumBuffSizeUnits = 1;
         
@@ -245,7 +211,7 @@ void FileMap::AllocateBufferMap(UInt32 inUnitSizeInK, UInt32 inNumBuffSizeUnits,
     fMapArraySize = (fileLen / fDataBufferSize) + 1;
     fFileMapArray = NEW FileBlockBuffer *[ (SInt32) (fMapArraySize + 1) ];
     
-    this->Clean(); // required because fFileMapArray's array is used to store buffer pointers.
+    this->Clean(); 
 #if FILE_SOURCE_DEBUG
     qtss_printf("FileMap::AllocateBufferMap shared buffers fFileMapArray=%lu fDataBufferSize= %lu fMapArraySize=%lu fileLen=%qu \n",fFileMapArray, fDataBufferSize, fMapArraySize,fileLen);   
 #endif
@@ -254,7 +220,7 @@ void FileMap::AllocateBufferMap(UInt32 inUnitSizeInK, UInt32 inNumBuffSizeUnits,
 
 void FileMap::DeleteOldBuffs()
 {
-    while (fBlockPool.GetNumCurrentBuffers() > fBlockPool.GetMaxBuffers()) // delete any old buffers
+    while (fBlockPool.GetNumCurrentBuffers() > fBlockPool.GetMaxBuffers())
     {
         FileBlockBuffer *theElem =  fBlockPool.GetBufferElement(fDataBufferSize);
         fFileMapArray[theElem->fArrayIndex] = NULL; 
@@ -266,7 +232,7 @@ void FileMap::DeleteOldBuffs()
 char *FileMap::GetBuffer(SInt64 buffIndex, Bool16 *outFillBuff)
 {
     Assert(outFillBuff != NULL);
-    *outFillBuff = true; // we are re-using or just created a buff
+    *outFillBuff = true;
 
     this->DeleteOldBuffs();
     Assert(buffIndex < (SInt32) fMapArraySize);
@@ -282,9 +248,9 @@ char *FileMap::GetBuffer(SInt64 buffIndex, Bool16 *outFillBuff)
          Assert(theElem);
     }
         
-    fBlockPool.MarkUsed(theElem); // must happen here after getting a pre-allocated or used buffer.
+    fBlockPool.MarkUsed(theElem); 
 
-    if (theElem->fArrayIndex == buffIndex) // found a pre-allocated and filled buffer
+    if (theElem->fArrayIndex == buffIndex) 
     {
         #if FILE_SOURCE_DEBUG
             //qtss_printf("FileMap::GetBuffer pre-allocated buff buffIndex=%ld\n",buffIndex);
@@ -296,10 +262,10 @@ char *FileMap::GetBuffer(SInt64 buffIndex, Bool16 *outFillBuff)
 
     if (theElem->fArrayIndex >= 0)
     {
-        fFileMapArray[theElem->fArrayIndex] = NULL; // reset the old map location
+        fFileMapArray[theElem->fArrayIndex] = NULL; 
     }
-    fFileMapArray[buffIndex] = theElem; // a new buffer
-    theElem->fArrayIndex = buffIndex; // record the index
+    fFileMapArray[buffIndex] = theElem; 
+    theElem->fArrayIndex = buffIndex; 
     
 #if FILE_SOURCE_DEBUG
     theElem->CleanBuffer();
@@ -417,7 +383,7 @@ OS_Error    OSFileSource::ReadFromCache(UInt64 inPosition, void* inBuffer, UInt3
     Assert(outRcvLen != NULL);
     *outRcvLen = 0;
         
-   if (inPosition >= fLength) // eof
+   if (inPosition >= fLength) 
         return OS_NoErr;
 
     SInt64 buffIndex = fFileMap.GetBuffIndex(inPosition);   
@@ -476,7 +442,7 @@ OS_Error    OSFileSource::ReadFromCache(UInt64 inPosition, void* inBuffer, UInt3
         if  (   (buffPos == 0) && 
                 (bytesToCopy <= maxBuffSize) && 
                 (buffSize < bytesToCopy)
-            ) // that's all there is in the file
+            )
         {
                 
             #if FILE_SOURCE_DEBUG
@@ -597,7 +563,6 @@ void OSFileSource::SetTrackID(UInt32 trackID)
 { 
 #if READ_LOG
     fTrackID = trackID;
-//  qtss_printf("OSFileSource::SetTrackID = %lu this=%lu\n",fTrackID,(UInt32) this);
 #endif
 }
 
@@ -625,8 +590,6 @@ void    OSFileSource::Close()
 #if TEST_TIME   
     if (fShouldClose)
     {   sMovie = 0;
-//      qtss_printf("OSFileSource::Close sReadCount = %ld totalbytes=%ld\n",sReadCount,sByteCount);
-//      qtss_printf("OSFileSource::Close durationTime = %qd\n",durationTime);
     }
 #endif
     
