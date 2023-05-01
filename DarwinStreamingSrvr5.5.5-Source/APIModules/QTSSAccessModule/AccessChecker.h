@@ -1,27 +1,12 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+This class is used to check access rights.
+The class contains the structure UserProfile which represents some basic information about the user.
+such as user name, encrypted password, summary password and user group.
+The functions UpdateFilePaths and UpdateUserProfiles are used to update the paths to user files and group files, and to update user information.
+The RetrieveUserProfile function is used to retrieve the user information for a given username.
+Other functions are used to retrieve certain variables in the class
+such as the authentication field, the user file path and the group file path.
+*/
  /*
     File:       AccessChecker.h
 
@@ -39,25 +24,27 @@
 class AccessChecker
 {
 /*
-    Access check logic:
-    
-    If "modAccess_enabled" == "enabled,
-    Starting at URL dir, walk up directories to Movie Folder until a "qtaccess" file is found
-        If not found, 
-            allow access
-        If found, 
-            send a challenge to the client
-            verify user against QTSSPasswd
-            verify that user or member group is in the lowest ".qtacess"
-            walk up directories until a ".qtaccess" is found
-            If found,
-                allow access
-            If not found, 
-                deny access
-                
-    ToDo:
-        would probably be a good idea to do some caching of ".qtaccess" data to avoid
-        multiple directory walks
+Access check logic:
+
+If "modAccess_enabled" == "Enabled
+
+Start from the URL directory and traverse up the directory to the movie folder until the "qtaccess" file is found
+
+If not found, the then allow access
+If found, send a query to the client
+
+Authenticate the user against QTSSPasswd
+Verify that the user or member group is at the lowest ".qtacess"
+
+Traverse the directory until ".qtaccess" is found
+
+If found, allow access
+If not found, deny access
+
+TODO:
+
+It is a good idea to have some caching of the ".qtaccess" data
+to avoid roaming multiple directories
 */
 
 public:
