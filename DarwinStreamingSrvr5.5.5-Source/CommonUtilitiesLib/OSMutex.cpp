@@ -1,46 +1,8 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       OSMutex.cpp
-
-    Contains:   Platform - independent mutex header. The implementation of this object
-                is platform - specific. Each platform must define an independent
-                QTSSMutex.h & QTSSMutex.cpp file.
-                
-                This file is for Mac OS X Server only
-
-    
-
-*/
-
 #include "OSMutex.h"
 #include <stdlib.h>
 #include "SafeStdLib.h"
 #include <string.h>
 
-// Private globals
 #if __PTHREADS_MUTEXES__
     static pthread_mutexattr_t  *sMutexAttr=NULL;
     static void MutexAttrInit();
@@ -93,7 +55,6 @@ OSMutex::~OSMutex()
 #if __PTHREADS_MUTEXES__ || __Win32__
 void        OSMutex::RecursiveLock()
 {
-    // We already have this mutex. Just refcount and return
     if (OSThread::GetCurrentThreadID() == fHolder)
     {
         fHolderCount++;
@@ -130,7 +91,6 @@ void        OSMutex::RecursiveUnlock()
 
 Bool16      OSMutex::RecursiveTryLock()
 {
-    // We already have this mutex. Just refcount and return
     if (OSThread::GetCurrentThreadID() == fHolder)
     {
         fHolderCount++;
@@ -138,7 +98,7 @@ Bool16      OSMutex::RecursiveTryLock()
     }
 
 #ifdef __Win32__
-    Bool16 theErr = (Bool16)::TryEnterCriticalSection(&fMutex); // Return values of this function match our API
+    Bool16 theErr = (Bool16)::TryEnterCriticalSection(&fMutex); 
     if (!theErr)
         return theErr;
 #else
@@ -155,4 +115,4 @@ Bool16      OSMutex::RecursiveTryLock()
     Assert(fHolderCount == 1);
     return true;
 }
-#endif //__PTHREADS_MUTEXES__ || __Win32__
+#endif 
