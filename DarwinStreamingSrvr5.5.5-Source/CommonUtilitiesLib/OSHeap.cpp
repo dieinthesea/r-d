@@ -1,36 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       OSHeap.cpp
-
-    Contains:   Implements a heap
-                    
-    
-    
-*/
-
 #include <string.h>
 
 #include "OSHeap.h"
@@ -79,12 +46,9 @@ void OSHeap::Insert(OSHeapElem* inElem)
     UInt32 swapPos = fFreeIndex;
     while (swapPos > 1)
     {
-        //move up the chain until we get to the root, bubbling this new element
-        //to its proper place in the tree
+        //bubble this new element to its proper place in the tree
         UInt32 nextSwapPos = swapPos >> 1;
         
-        //if this child is greater than it's parent, we need to do the old
-        //switcheroo
         if (fHeap[swapPos]->fValue < fHeap[nextSwapPos]->fValue)
         {
             OSHeapElem* temp = fHeap[swapPos];
@@ -93,7 +57,6 @@ void OSHeap::Insert(OSHeapElem* inElem)
             swapPos = nextSwapPos;
         }
         else
-            //if not, we are done!
             break;
     }
     inElem->fCurrentHeap = this;
@@ -110,46 +73,33 @@ OSHeapElem* OSHeap::Extract(UInt32 inIndex)
     SanityCheck(1);
 #endif
     
-    //store a reference to the element we want to extract
+
     OSHeapElem* victim = fHeap[inIndex];
     Assert(victim->fCurrentHeap == this);
     victim->fCurrentHeap = NULL;
     
-    //but now we need to preserve this heuristic. We do this by taking
-    //the last leaf, putting it at the empty position, then heapifying that chain
     fHeap[inIndex] = fHeap[fFreeIndex - 1];
     fFreeIndex--;
-    
-    //The following is an implementation of the Heapify algorithm (CLR 7.1 pp 143)
-    //The gist is that this new item at the top of the heap needs to be bubbled down
-    //until it is bigger than its two children, therefore maintaining the heap property.
     
     UInt32 parent = inIndex;
     while (parent < fFreeIndex)
     {
-        //which is bigger? parent or left child?
         UInt32 greatest = parent;
         UInt32 leftChild = parent * 2;
         if ((leftChild < fFreeIndex) && (fHeap[leftChild]->fValue < fHeap[parent]->fValue))
             greatest = leftChild;
 
-        //which is bigger? the biggest so far or the right child?
         UInt32 rightChild = (parent * 2) + 1;
         if ((rightChild < fFreeIndex) && (fHeap[rightChild]->fValue < fHeap[greatest]->fValue))
             greatest = rightChild;
          
-        //if the parent is in fact bigger than its two children, we have bubbled
-        //this element down far enough
         if (greatest == parent)
             break;
             
-        //parent is not bigger than at least one of its two children, so swap the parent
-        //with the largest item.
         OSHeapElem* temp = fHeap[parent];
         fHeap[parent] = fHeap[greatest];
         fHeap[greatest] = temp;
         
-        //now heapify the remaining chain
         parent = greatest;
     }
     
@@ -171,7 +121,6 @@ OSHeapElem* OSHeap::Remove(OSHeapElem* elem)
         if (elem == fHeap[theIndex])
             break;
             
-    //either we've found it, or this is a bogus element
     if (theIndex == fFreeIndex)
         return NULL;
         
@@ -183,7 +132,6 @@ OSHeapElem* OSHeap::Remove(OSHeapElem* elem)
 
 void OSHeap::SanityCheck(UInt32 root)
 {
-    //make sure root is greater than both its children. Do so recursively
     if (root < fFreeIndex)
     {
         if ((root * 2) < fFreeIndex)
