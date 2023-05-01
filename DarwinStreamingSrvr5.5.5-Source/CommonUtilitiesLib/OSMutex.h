@@ -1,40 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       OSMutex.h
-
-    Contains:   Platform - independent mutex header. The implementation of this object
-                is platform - specific. Each platform must define an independent
-                OSMutex.h & OSMutex.cpp file.
-                
-                This file is for Mac OS X Server only
-
-    
-
-*/
-
 #ifndef _OSMUTEX_H_
 #define _OSMUTEX_H_
 
@@ -73,7 +36,6 @@ class OSMutex
         inline void Lock();
         inline void Unlock();
         
-        // Returns true on successful grab of the lock, false on failure
         inline Bool16 TryLock();
 
     private:
@@ -88,8 +50,6 @@ class OSMutex
         mymutex_t fMutex;
 #else
         pthread_mutex_t fMutex;
-        // These two platforms don't implement pthreads recursive mutexes, so
-        // we have to do it manually
         pthread_t   fHolder;
         UInt32      fHolderCount;
 #endif
@@ -123,7 +83,7 @@ void OSMutex::Lock()
     this->RecursiveLock();
 #else
     mymutex_lock(fMutex);
-#endif //!__PTHREADS__
+#endif 
 }
 
 void OSMutex::Unlock()
@@ -132,7 +92,7 @@ void OSMutex::Unlock()
     this->RecursiveUnlock();
 #else
     mymutex_unlock(fMutex);
-#endif //!__PTHREADS__
+#endif 
 }
 
 Bool16 OSMutex::TryLock()
@@ -141,7 +101,7 @@ Bool16 OSMutex::TryLock()
     return this->RecursiveTryLock();
 #else
     return (Bool16)mymutex_try_lock(fMutex);
-#endif //!__PTHREADS__
+#endif 
 }
 
-#endif //_OSMUTEX_H_
+#endif 
