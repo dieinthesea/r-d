@@ -1,37 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       SocketUtils.cpp
-
-    Contains:   Implements utility functions defined in SocketUtils.h
-                    
-
-    
-    
-*/
-
 #include <string.h>
 
 #ifndef __Win32__
@@ -59,7 +25,7 @@
 #define USE_SIOCGIFNUM 1
 #endif
 
-#ifdef TRUCLUSTER  /* Tru64 Cluster Alias support */
+#ifdef TRUCLUSTER 
   
 #include <clua/clua.h>
 #include <sys/clu.h>
@@ -73,10 +39,10 @@ static char *(*clua_error_vector) (clua_status_t);
 struct clucall_vector clua_vectors[] = {
         { "clua_getaliasaddress", &clua_getaliasaddress_vector },
         { "clua_error", &clua_error_vector },
-        { NULL,     NULL }              /* END OF LIST */
+        { NULL,     NULL }           
 };
 
-#endif /* TRUCLUSTER */
+#endif 
 
 UInt32                          SocketUtils::sNumIPAddrs = 0;
 SocketUtils::IPAddrInfo*        SocketUtils::sIPAddrInfoArray = NULL;
@@ -84,8 +50,6 @@ OSMutex SocketUtils::sMutex;
 
 #if __FreeBSD__
 
-//Complete rewrite for FreeBSD. 
-//The non-FreeBSD version really needs to be rewritten - it's a bit of a mess...
 void SocketUtils::Initialize(Bool16 lookupDNSName)
 {
     struct ifaddrs* ifap;
@@ -95,7 +59,6 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
     
     result = getifaddrs(&ifap);
     
-    //Count them first
     currentifap = ifap;
     while( currentifap != NULL )
     {
@@ -105,9 +68,6 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         currentifap = currentifap->ifa_next;
     }
     
-    
-    //allocate the IPAddrInfo array. Unfortunately we can't allocate this
-    //array the proper way due to a GCC bug
     UInt8* addrInfoMem = new UInt8[sizeof(IPAddrInfo) * sNumIPAddrs];
     ::memset(addrInfoMem, 0, sizeof(IPAddrInfo) * sNumIPAddrs);
     sIPAddrInfoArray = (IPAddrInfo*)addrInfoMem;
@@ -158,9 +118,8 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
     
 }
 
-#else //__FreeBSD__
+#else 
 
-//Version for all non-FreeBSD platforms.
 
 void SocketUtils::Initialize(Bool16 lookupDNSName)
 {
@@ -177,8 +136,7 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
     char outBuffer[kMaxAddrBufferSize];
     UInt32 theReturnedSize = 0;
     
-    //
-    // Use the WSAIoctl function call to get a list of IP addresses
+    //get a list of IP addresses
     int theErr = ::WSAIoctl(    tempSocket, SIO_GET_INTERFACE_LIST, 
                                 inBuffer, kMaxAddrBufferSize,
                                 outBuffer, kMaxAddrBufferSize,
@@ -219,30 +177,16 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         return;
     struct ifreq* ifr = (struct ifreq*)ifc.ifc_buf;
 #endif
-    
-    //allocate the IPAddrInfo array. Unfortunately we can't allocate this
-    //array the proper way due to a GCC bug
+
     UInt8* addrInfoMem = new UInt8[sizeof(IPAddrInfo) * sNumIPAddrs];
     ::memset(addrInfoMem, 0, sizeof(IPAddrInfo) * sNumIPAddrs);
     sIPAddrInfoArray = (IPAddrInfo*)addrInfoMem;
 
-    //for (UInt32 addrCount = 0; addrCount < sNumIPAddrs; addrCount++)
     UInt32 currentIndex = 0;
     for (UInt32 theIfCount = sNumIPAddrs, addrCount = 0;
          addrCount < theIfCount; addrCount++)
     {
 #ifdef __Win32__
-        // We *should* count the loopback interface as a valid interface.
-        //if (addrListP[addrCount].iiFlags & IFF_LOOPBACK)
-        //{
-            // Don't count loopback addrs
-        //  sNumIPAddrs--;
-        //  continue;
-        //}
-        //if (addrListP[addrCount].iiFlags & IFF_LOOPBACK)
-        //  if (lookupDNSName) // The playlist broadcaster doesn't care
-        //      Assert(addrCount > 0); // If the loopback interface is interface 0, we've got problems
-            
         struct sockaddr_in* theAddr = (struct sockaddr_in*)&addrListP[addrCount].iiAddress;
 #elif defined(USE_SIOCGIFNUM)
         if (ifr[addrCount].ifr_addr.sa_family != AF_INET)
@@ -257,7 +201,6 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         Assert(theErr != -1);
 
 #ifndef __solaris__
-        /* Skip things which aren't interesting */
         if ((ifrf.ifr_flags & IFF_UP) == 0 ||
             (ifrf.ifr_flags & (IFF_BROADCAST | IFF_POINTOPOINT)) == 0)
         {
@@ -266,7 +209,7 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         }
         if (ifrf.ifr_flags & IFF_LOOPBACK)
         {
-            Assert(addrCount > 0); // If the loopback interface is interface 0, we've got problems
+            Assert(addrCount > 0); 
         }
 #endif
         
@@ -320,12 +263,7 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
 #error
 #endif
     
-#else // !__Win32__
-
-    //Most of this code is similar to the SIOCGIFCONF code presented in Stevens,
-    //Unix Network Programming, section 16.6
-    
-    //Use the SIOCGIFCONF ioctl call to iterate through the network interfaces
+#else 
     static const UInt32 kMaxAddrBufferSize = 2048;
     
     struct ifconf ifc;
@@ -365,8 +303,6 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
     ::close(tempSocket);
     tempSocket = -1;
 
-    //walk through the list of IP addrs twice. Once to find out how many,
-    //the second time to actually grab their information
     char* ifReqIter = NULL;
     sNumIPAddrs = 0;
     
@@ -375,13 +311,7 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         ifr = (struct ifreq*)ifReqIter;
         if (!SocketUtils::IncrementIfReqIter(&ifReqIter, ifr))
             return;
-        
-        // Some platforms have lo as the first interface, so we have code to
-        // work around this problem below
-        //if (::strncmp(ifr->ifr_name, "lo", 2) == 0)
-        //  Assert(sNumIPAddrs > 0); // If the loopback interface is interface 0, we've got problems
-    
-        //Only count interfaces in the AF_INET family.
+
         if (ifr->ifr_addr.sa_family == AF_INET)
             sNumIPAddrs++;
     }
@@ -413,20 +343,15 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
       
     }
 
-#endif // TRUCLUSTER
-    
-    //allocate the IPAddrInfo array. Unfortunately we can't allocate this
-    //array the proper way due to a GCC bug
+#endif 
     UInt8* addrInfoMem = new UInt8[sizeof(IPAddrInfo) * sNumIPAddrs];
     ::memset(addrInfoMem, 0, sizeof(IPAddrInfo) * sNumIPAddrs);
     sIPAddrInfoArray = (IPAddrInfo*)addrInfoMem;
     
-    //Now extract all the necessary information about each interface
-    //and put it into the array
+    //Now extract all the necessary information about each interface and put it into the array
     UInt32 currentIndex = 0;
 
 #ifdef TRUCLUSTER
-	// Do these cluster aliases first so they'll be first in the list
 	if (clusterAliases > 0)
 	{
 		int context = 0;
@@ -465,7 +390,7 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
 			currentIndex++;
 		}
 	}
-#endif // TRUCLUSTER	
+#endif 
   	
     for (ifReqIter = buffer; ifReqIter < (buffer + ifc.ifc_len);)
     {
@@ -476,7 +401,6 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
             return;
         }
         
-        //Only count interfaces in the AF_INET family
         if (ifr->ifr_addr.sa_family == AF_INET)
         {
             struct sockaddr_in* addrPtr = (struct sockaddr_in*)&ifr->ifr_addr;  
@@ -517,10 +441,6 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
     Assert(currentIndex == sNumIPAddrs);
 #endif
 
-    //
-    // If LocalHost is the first element in the array, switch it to be the second.
-    // The first element is supposed to be the "default" interface on the machine,
-    // which should really always be en0.
     if ((sNumIPAddrs > 1) && (::strcmp(sIPAddrInfoArray[0].fIPAddrStr.Ptr, "127.0.0.1") == 0))
     {
         UInt32 tempIP = sIPAddrInfoArray[1].fIPAddr;
@@ -534,20 +454,17 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         sIPAddrInfoArray[0].fDNSNameStr = tempDNSStr;
     }
 }
-#endif  //__FreeBSD__
+#endif  
 
 
 
 #ifndef __Win32__
 Bool16 SocketUtils::IncrementIfReqIter(char** inIfReqIter, ifreq* ifr)
 {
-    //returns true if successful, false otherwise
 
 #if __MacOSX__
     *inIfReqIter += sizeof(ifr->ifr_name) + ifr->ifr_addr.sa_len;
 
-    //if the length of the addr is 0, use the family to determine
-    //what the addr size is
     if (ifr->ifr_addr.sa_len == 0)
 #else
     *inIfReqIter += sizeof(ifr->ifr_name) + 0;
@@ -560,9 +477,7 @@ Bool16 SocketUtils::IncrementIfReqIter(char** inIfReqIter, ifreq* ifr)
                 break;
             default:
                 *inIfReqIter += sizeof(struct sockaddr);
-//              Assert(0);
-//              sNumIPAddrs = 0;
-//              return false;
+
         }
     }
     return true;
@@ -571,7 +486,7 @@ Bool16 SocketUtils::IncrementIfReqIter(char** inIfReqIter, ifreq* ifr)
 
 Bool16 SocketUtils::IsMulticastIPAddr(UInt32 inAddress)
 {
-    return ((inAddress>>8) & 0x00f00000) == 0x00e00000; //  multicast addresses == "class D" == 0xExxxxxxx == 1,1,1,0,<28 bits>
+    return ((inAddress>>8) & 0x00f00000) == 0x00e00000; 
 }
 
 Bool16 SocketUtils::IsLocalIPAddr(UInt32 inAddress)
@@ -584,9 +499,6 @@ Bool16 SocketUtils::IsLocalIPAddr(UInt32 inAddress)
 
 void SocketUtils::ConvertAddrToString(const struct in_addr& theAddr, StrPtrLen* ioStr)
 {
-    //re-entrant version of code below
-    //inet_ntop(AF_INET, &theAddr, ioStr->Ptr, ioStr->Len);
-    //ioStr->Len = ::strlen(ioStr->Ptr);
     
     sMutex.Lock();
     char* addr = inet_ntoa(theAddr);
