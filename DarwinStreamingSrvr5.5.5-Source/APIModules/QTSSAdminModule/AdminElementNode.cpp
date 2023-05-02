@@ -1,27 +1,6 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+
+*/
 /*
     File:       AdminElementNode.cpp
 
@@ -66,6 +45,9 @@ static void * sPtrArray[10000];
 static char * sSourceArray[10000];
 #endif
 
+//Determine whether the incoming argument str is equal to sDoAllSPL or sDoAllIndexIteratorSPL; 
+//if so, return true, otherwise return false.
+
 Bool16  ElementNode_DoAll(StrPtrLen* str)
 {   
     Assert(str); 
@@ -77,6 +59,9 @@ Bool16  ElementNode_DoAll(StrPtrLen* str)
     return isIterator;
 }
 
+//Empty the sPtrArray and sSourceArray arrays, which are used to store pointers and the source code information corresponding to the pointers.
+//This function is very useful when doing memory debugging.
+
 void ElementNode_InitPtrArray()
 {
 #if MEMORYDEBUGGING
@@ -84,6 +69,9 @@ void ElementNode_InitPtrArray()
     memset(sSourceArray, 0, sizeof(sSourceArray));
 #endif
 }
+
+//Store the incoming pointer ptr and source code information src into the sPtrArray and sSourceArray arrays. 
+//If the array is full, an error message is output and the program is terminated.
 
 void ElementNode_InsertPtr(void *ptr, char * src)
 {
@@ -106,6 +94,9 @@ void ElementNode_InsertPtr(void *ptr, char * src)
 #endif
 }
 
+//Find if there is an element in the sPtrArray array that is equal to the incoming pointer ptr. 
+//This function can be used to determine if there are duplicate pointers
+
 Bool16 ElementNode_FindPtr(void *ptr, char * src)
 {   // use for validating duplicates at some point
 #if MEMORYDEBUGGING
@@ -120,6 +111,11 @@ Bool16 ElementNode_FindPtr(void *ptr, char * src)
 #endif
     return false;
 }
+
+//Removes the pointer ptr from the dynamic array sPtrArray 
+//and sets the value in the source string sSourceArray corresponding to this pointer to NULL.
+//The conditional compilation instruction MEMORYDEBUGGING is used for debugging checks.
+//If the corresponding element is not found, an error message is output and the program is terminated with an exception.
 
 void ElementNode_RemovePtr(void *ptr, char * src)
 {   
@@ -147,6 +143,12 @@ void ElementNode_RemovePtr(void *ptr, char * src)
 #endif
 }
 
+//Count the number of non-null pointers in the dynamic array sPtrArray.
+//When the conditional compilation instruction MEMORYDEBUGGING is defined, 
+//the function iterates through all elements of the sPtrArray array, 
+//counts the number of non-null pointers, and returns the value.
+//Otherwise, the function returns 0.
+
 SInt32 ElementNode_CountPtrs()
 {
 #if MEMORYDEBUGGING
@@ -163,6 +165,8 @@ SInt32 ElementNode_CountPtrs()
 #endif
 }
 
+//Show the value of the non-null pointer in the dynamic array sPtrArray and the corresponding source string. 
+
 void ElementNode_ShowPtrs()
 {
 #if MEMORYDEBUGGING
@@ -173,6 +177,8 @@ void ElementNode_ShowPtrs()
     }
 #endif
 }
+
+//Used to output the value and length of a string pointer.
 
 void PRINT_STR(StrPtrLen *spl)
 {
@@ -187,6 +193,8 @@ void PRINT_STR(StrPtrLen *spl)
     }
 }
 
+//copy the contents of one buffer to another, the function throws an assertion exception if the input parameters are incorrect.
+
 void COPYBUFFER(char *dest,char *src,SInt8 size)
 {
     if ( (dest != NULL) && (src != NULL) && (size > 0) ) 
@@ -194,6 +202,11 @@ void COPYBUFFER(char *dest,char *src,SInt8 size)
     else
         Assert(0);
 };
+
+//Create a new character array and copy the contents of the source string to that character array. 
+//If the input source string pointer is not null,
+//the function copies the contents of the string and returns the new character array pointer,
+//otherwise it returns NULL.
 
 char* NewCharArrayCopy(StrPtrLen *theStringPtr)
 {
@@ -209,7 +222,9 @@ char* NewCharArrayCopy(StrPtrLen *theStringPtr)
     return newArray;
 }
 
-
+//ElementNode constructor. Initialize each member variable pointer to NULL, 
+//set the first element of fPathBuffer to 0 and the length of fPathSPL to 0.
+//fInitialized is set to false, fIsTop is set to false, and fDataFieldsType is set to eDynamic.
 
 ElementNode::ElementNode()
 {
@@ -230,6 +245,12 @@ ElementNode::ElementNode()
     fDataFieldsType = eDynamic;
 
 };
+
+//ElementNode initialization function. 
+//If fInitialized is false, the parent node pointer, node source, node information pointer, node name pointer and node data pointer are set.
+
+//Next, the node field is initialised according to the query URI, the current segment pointer and the initialisation parameters, 
+//if the node field is empty. Finally set fInitialized to true and make some related settings
 
 void ElementNode::Initialize(SInt32 index, ElementNode *parentPtr, QueryURI *queryPtr, StrPtrLen *currentSegmentPtr,QTSS_Initialize_Params *initParams,QTSS_Object nodeSource, DataFieldsType dataFieldsType)
 {   
@@ -261,6 +282,9 @@ void ElementNode::Initialize(SInt32 index, ElementNode *parentPtr, QueryURI *que
     
 };
 
+//ElementNode destructor. Loops through each field of the node, 
+//deleting the node if it is a hash table and clearing it if it is a data pointer. 
+//Finally delete the hash table, the data pointer and the field ID array
 
 ElementNode::~ElementNode()
 {
@@ -313,49 +337,55 @@ ElementNode::~ElementNode()
 
 };
 
+// assign numFields fields to the ElementNode object
+// numFields: the number of fields to be allocated
+// Return value: QTSS_Error type, indicating whether the allocation is successful or not
+
 QTSS_Error ElementNode::AllocateFields(UInt32 numFields)
 {
     //qtss_printf("-------- ElementNode::AllocateFields ----------\n");
     //qtss_printf("ElementNode::AllocateFields numFields=%lu\n",numFields);
     
-    QTSS_Error err = QTSS_NotEnoughSpace;
-    
-    Assert(GetNumFields() == 0);
-    SetNumFields(numFields);
+    QTSS_Error err = QTSS_NotEnoughSpace;// set the default return value to QTSS_NotEnoughSpace
 
-    if (numFields > 0) do
+    
+    Assert(GetNumFields() == 0);// Assert that the current number of fields is 0
+    SetNumFields(numFields);// set the current number of fields to numFields
+
+
+    if (numFields > 0) do // If the number of fields to be allocated is greater than 0, then do the following
     {   
-        Assert(fFieldIDs == NULL);
-        fFieldIDs = NEW ElementNode::ElementDataFields[numFields]; ElementNode_InsertPtr(fFieldIDs,"ElementNode::AllocateFields fFieldIDs array");
-        Assert(fFieldIDs != NULL);
-        if (fFieldIDs == NULL) break;
-        memset(fFieldIDs, 0, numFields * sizeof(ElementNode::ElementDataFields));
+        Assert(fFieldIDs == NULL); // Assert that the fFieldIDs array is a null pointer
+        fFieldIDs = NEW ElementNode::ElementDataFields[numFields]; ElementNode_InsertPtr(fFieldIDs, "ElementNode::AllocateFields fFieldIDs array" ); // allocate memory for the fFieldIDs array and insert it into the list where the element was inserted
+        Assert(fFieldIDs ! = NULL); // Assert that the fFieldIDs array is not a null pointer
+        if (fFieldIDs == NULL) break; // if the fFieldIDs array is a null pointer, jump out of the loop
+        memset(fFieldIDs, 0, numFields * sizeof(ElementNode::ElementDataFields)); // clear the fFieldIDs array to zero
+
+        Assert(fElementMap == NULL); // Assert fElementMap as a null pointer
+        fElementMap = NEW OSRefTable(); ElementNode_InsertPtr(fElementMap, "ElementNode::AllocateFields fElementMap OSRefTable"); // allocate memory for fElementMap allocate memory and insert it into the list where the element is inserted
+        Assert(fElementMap ! = NULL); // Assert that fElementMap is not a null pointer
+        if (fElementMap == NULL) break; // if fElementMap is a null pointer, then skip the loop
+
+        Assert(fFieldDataPtrs == NULL); // Assert that fFieldDataPtrs is a null pointer
+        fFieldDataPtrs = NEW char*[numFields]; ElementNode_InsertPtr(fFieldDataPtrs, "ElementNode::AllocateFields fFieldDataPtrs array"); // Assert(fFieldDataPtrs == NULL); // Assert(fFieldDataPtrs == NULL); // Assert(fFieldDataPtrs == NULL); // Assert(fFieldDataPtrs == NULL) fFieldDataPtrs array to allocate memory and insert into the list of element insertions
+        Assert(fFieldDataPtrs ! = NULL); // Assert that fFieldDataPtrs is not a null pointer
+        if (fFieldDataPtrs == NULL) break; // if fFieldDataPtrs is a null pointer, then jump out of the loop
+        memset(fFieldDataPtrs, 0, numFields * sizeof(char*)); // clear the fFieldDataPtrs array to zero
+
+        Assert(fFieldOSRefPtrs == NULL); // Assert that fFieldOSRefPtrs is a null pointer
+        fFieldOSRefPtrs = NEW OSRef*[numFields]; ElementNode_InsertPtr(fFieldOSRefPtrs, "ElementNode::AllocateFields fFieldDataPtrs array"); // Assert(fFieldOSRefPtrs == NULL); // Assert(fFieldOSRefPtrs == NULL); // Assert(fFieldOSRefPtrs == NULL) fFieldOSRefPtrs array to allocate memory and insert into the list of element insertions
+        Assert(fFieldOSRefPtrs ! = NULL); // Assert that fFieldOSRefPtrs is not a null pointer
+        if (fFieldOSRefPtrs == NULL) break; // if fFieldOSRefPtrs is a null pointer, then skip the loop
+        memset(fFieldOSRefPtrs, 0, numFields * sizeof(OSRef*)); // clear the fFieldOSRefPtrs array to zero
         
-        Assert(fElementMap == NULL);
-        fElementMap = NEW OSRefTable();  ElementNode_InsertPtr(fElementMap,"ElementNode::AllocateFields fElementMap OSRefTable");
-        Assert(fElementMap != NULL);
-        if (fElementMap == NULL) break;
-        
-        Assert(fFieldDataPtrs == NULL);
-        fFieldDataPtrs = NEW char*[numFields]; ElementNode_InsertPtr(fFieldDataPtrs,"ElementNode::AllocateFields fFieldDataPtrs array");
-        Assert(fFieldDataPtrs != NULL);
-        if (fFieldDataPtrs == NULL) break;
-        memset(fFieldDataPtrs, 0, numFields * sizeof(char*));
-            
-        Assert(fFieldOSRefPtrs == NULL);
-        fFieldOSRefPtrs = NEW OSRef*[numFields];  ElementNode_InsertPtr(fFieldOSRefPtrs,"ElementNode::AllocateFields fFieldDataPtrs array");
-        Assert(fFieldOSRefPtrs != NULL);
-        if (fFieldOSRefPtrs == NULL) break;
-        memset(fFieldOSRefPtrs, 0, numFields * sizeof(OSRef*));
-        
-        err = QTSS_NoErr;
+        err = QTSS_NoErr;// assign successfully, set return value to QTSS_NoErr
     } while (false);
     
     return err; 
 };
 
 
-
+//Set the attribute field of an element node
 
 void ElementNode::SetFields(UInt32 i, QTSS_Object attrInfoObject)
 {
@@ -364,8 +394,9 @@ void ElementNode::SetFields(UInt32 i, QTSS_Object attrInfoObject)
     UInt32 ioLen = 0;
     QTSS_Error err = QTSS_NoErr;
     if(fFieldIDs[i].fFieldName[0] != 0)
-        return;
-        
+        return;//If the field name is not 0, return directly
+    
+    //Set the field name 
     if(fFieldIDs[i].fFieldName[0] == 0)
     {
         fFieldIDs[i].fFieldLen = eMaxAttributeNameSize;
@@ -375,10 +406,12 @@ void ElementNode::SetFields(UInt32 i, QTSS_Object attrInfoObject)
             fFieldIDs[i].fFieldName[fFieldIDs[i].fFieldLen] = 0;
     }
     
+    //Get API ID
     ioLen = sizeof(fFieldIDs[i].fAPI_ID);
     err = QTSS_GetValue (attrInfoObject, qtssAttrID,0, &fFieldIDs[i].fAPI_ID, &ioLen);
     Assert(err == QTSS_NoErr);  
     
+    //Get API Type
     ioLen = sizeof(fFieldIDs[i].fAPI_Type);
     err = QTSS_GetValue (attrInfoObject, qtssAttrDataType,0, &fFieldIDs[i].fAPI_Type, &ioLen);
     Assert(err == QTSS_NoErr);  
@@ -387,39 +420,44 @@ void ElementNode::SetFields(UInt32 i, QTSS_Object attrInfoObject)
         //qtss_printf("QTSS_GetValue err = %ld attrInfoObject=%lu qtssAttrDataType = %lu \n",err, (UInt32)  attrInfoObject, (UInt32) fFieldIDs[i].fAPI_Type);
     }
     
+    // If the API type is QTSS_Object, then set the field type to eNode
     if (fFieldIDs[i].fAPI_Type == qtssAttrDataTypeQTSS_Object)
-        fFieldIDs[i].fFieldType = eNode;
-        
-    ioLen = sizeof(fFieldIDs[i].fAccessPermissions);
-    err = QTSS_GetValue (attrInfoObject, qtssAttrPermissions,0, &fFieldIDs[i].fAccessPermissions, &ioLen);
-    Assert(err == QTSS_NoErr);  
+    fFieldIDs[i].fFieldType = eNode.
     
-    fFieldIDs[i].fAccessData[0] = 0;
+    // Get access rights
+    ioLen = sizeof(fFieldIDs[i].fAccessPermissions).
+    err = QTSS_GetValue (attrInfoObject, qtssAttrPermissions,0, &fFieldIDs[i].fAccessPermissions, &ioLen).
+    Assert(err == QTSS_NoErr).  
+
+    // Initialize access data
+    fFieldIDs[i].fAccessData[0] = 0.
     if (fFieldIDs[i].fAccessPermissions & qtssAttrModeRead)
-    {   strcat(fFieldIDs[i].fAccessData, "r");
+    { strcat(fFieldIDs[i].fAccessData, "r"); // add 'r' if read permissions are available
     }
-    
-    if (fFieldIDs[i].fAccessPermissions & qtssAttrModeWrite && fFieldIDs[i].fAPI_Type != qtssAttrDataTypeQTSS_Object)
-    {   strcat(fFieldIDs[i].fAccessData, "w");
+
+    if (fFieldIDs[i].fAccessPermissions & qtssAttrModeWrite && fFieldIDs[i].fAPI_Type ! = qtssAttrDataTypeQTSS_Object)
+    { strcat(fFieldIDs[i].fAccessData, "w"); // add 'w' if there are write permissions and the API type is not QTSS_Object
     }
 
     if (fFieldIDs[i].fAccessPermissions & qtssAttrModeInstanceAttrAllowed && fFieldIDs[i].fAPI_Type == qtssAttrDataTypeQTSS_Object)
-    {   strcat(fFieldIDs[i].fAccessData, "w");
+    { strcat(fFieldIDs[i].fAccessData, "w"); // add 'w' if it is of type QTSS_Object
     }
 
-    if (GetMyFieldType() != eNode && GetNumFields() > 1)
-    {   strcat(fFieldIDs[i].fAccessData, "d");
+    // if the node type is not eNode and the number of fields is greater than 1, add 'd'
+    if (GetMyFieldType() ! = eNode && GetNumFields() > 1)
+    { strcat(fFieldIDs[i].fAccessData, "d").
     }
     if (fFieldIDs[i].fAccessPermissions & qtssAttrModeDelete)
-    {   strcat(fFieldIDs[i].fAccessData, "d");
+    { strcat(fFieldIDs[i].fAccessData, "d"); // add 'd' if delete permission is available
     }
-    
 
+    // add 'p' if there is a preemption prevention permission
     if (fFieldIDs[i].fAccessPermissions & qtssAttrModePreempSafe)
-    {   strcat(fFieldIDs[i].fAccessData, "p");
+    { strcat(fFieldIDs[i].fAccessData, "p").
     }
 
-    fFieldIDs[i].fAccessLen = strlen(fFieldIDs[i].fAccessData);
+    fFieldIDs[i].fAccessLen = strlen(fFieldIDs[i].fAccessData); // Calculate the length of the access data
+
     
     //qtss_printf("ElementNode::SetFields name=%s api_id=%ld \n",fFieldIDs[i].fFieldName, fFieldIDs[i].fAPI_ID);
     //DebugShowFieldDataType(i);    
@@ -588,17 +626,19 @@ void ElementNode::SetNodeInfo(ElementDataFields *nodeInfoPtr)
 
 void ElementNode::SetNodeName(char *namePtr)
 {
-    if (namePtr == NULL)
+    if (namePtr == NULL)// If the node name is a null pointer, delete the original node name and return
     {   delete fNodeNameSPL.Ptr; ElementNode_RemovePtr(fNodeNameSPL.Ptr,"ElementNode::SetNodeName char* ");
         fNodeNameSPL.Set(NULL, 0);
         return;
     }
     
-    if (fNodeNameSPL.Ptr != NULL) 
+    if (fNodeNameSPL.Ptr != NULL) // If the node name pointer is not null, delete the original node name
     {   delete fNodeNameSPL.Ptr; ElementNode_RemovePtr(fNodeNameSPL.Ptr,"ElementNode::SetNodeName char* ");
         fNodeNameSPL.Set(NULL, 0);
     }
     //qtss_printf(" ElementNode::SetNodeName new NodeName = %s \n",namePtr);
+    
+    // Allocate new node name memory space and copy the incoming node name into memory
     int len = ::strlen(namePtr);    
     fNodeNameSPL.Ptr = NEW char[len + 1]; ElementNode_InsertPtr(fNodeNameSPL.Ptr,"ElementNode::SetNodeName ElementNode* chars");
     fNodeNameSPL.Len = len; 
@@ -606,6 +646,7 @@ void ElementNode::SetNodeName(char *namePtr)
     fNodeNameSPL.Ptr[len] = 0;
 };
 
+//returns a pointer to a specific index element
 ElementNode::ElementDataFields *ElementNode::GetElementFieldPtr(SInt32 index) 
 { 
     ElementNode::ElementDataFields *resultPtr = NULL; 
@@ -616,6 +657,7 @@ ElementNode::ElementDataFields *ElementNode::GetElementFieldPtr(SInt32 index)
     return resultPtr; 
 }
 
+//returns a pointer to a specific index data
 char *ElementNode::GetElementDataPtr(SInt32 index) 
 { 
     char *resultPtr = NULL; 
@@ -626,6 +668,7 @@ char *ElementNode::GetElementDataPtr(SInt32 index)
     return resultPtr; 
 }
 
+//sets the pointer to the specific index data to the given value
 void ElementNode::SetElementDataPtr(SInt32 index,char *data, Bool16 isNode) 
 { 
     //qtss_printf("------ElementNode::SetElementDataPtr----- \n");
@@ -648,7 +691,7 @@ void ElementNode::SetElementDataPtr(SInt32 index,char *data, Bool16 isNode)
 }
 
 
-
+//debugging functions
 inline void ElementNode::DebugShowFieldDataType(SInt32 /*index*/)
 {
     //char field[100];
@@ -662,6 +705,8 @@ inline void ElementNode::DebugShowFieldValue(SInt32 /*index*/)
 {
     //qtss_printf("debug: %s=%s\n",GetName(index),GetElementDataPtr(index));
 }
+
+//Handling dynamic arrays, pointers and strings
 
 ElementNode::ElementDataFields *ElementNode::GetNodeInfoPtr(SInt32 index) 
 { 
@@ -853,11 +898,13 @@ void ElementNode::SetUpAllNodes(QueryURI *queryPtr, StrPtrLen *currentSegmentPtr
     }
 }
 
+// Gets the length of the specified attribute
 QTSS_Error ElementNode::GetAttributeSize (QTSS_Object inObject, QTSS_AttributeID inID, UInt32 inIndex, UInt32* outLenPtr)
 {
     return QTSS_GetValue (inObject, inID, inIndex, NULL, outLenPtr);
 }
 
+//gets the value of the element at the specified index and returns a string pointer
 char *ElementNode::NewIndexElement (QTSS_Object inObject, QTSS_AttributeID inID, UInt32 inIndex)
 {   
     QTSS_Error err = QTSS_NoErr;
@@ -874,7 +921,7 @@ char *ElementNode::NewIndexElement (QTSS_Object inObject, QTSS_AttributeID inID,
     return resultPtr;
 }
 
-
+//converts a key value of type string to an index of type integer
 inline  SInt32 ElementNode::ResolveSPLKeyToIndex(StrPtrLen *keyPtr)
 {   
     SInt32 index = -1; 
@@ -889,7 +936,7 @@ inline  SInt32 ElementNode::ResolveSPLKeyToIndex(StrPtrLen *keyPtr)
     return index;   
 }
 
-
+//gets the number of attributes of a node
 UInt32 ElementNode::CountAttributes(QTSS_Object source)
 {
     //qtss_printf("------ElementNode::CountAttributes-------\n");
@@ -904,6 +951,7 @@ UInt32 ElementNode::CountAttributes(QTSS_Object source)
     return numFields;
 }
 
+// Gets the number of elements of a node
 UInt32 ElementNode::CountValues(QTSS_Object source, UInt32 apiID)
 {
     //qtss_printf("------ElementNode::CountValues-------\n");
@@ -917,6 +965,11 @@ UInt32 ElementNode::CountValues(QTSS_Object source, UInt32 apiID)
 }
 
 
+//Gets the OSRef pointer of a node, 
+//used to handle objects associated with the node.
+//If the pointer does not exist,
+//create a new OSRef object and initialize it, 
+//then associate it with the node.
 
 OSRef* ElementNode::GetOSRef(SInt32 index)
 {   
@@ -938,6 +991,7 @@ OSRef* ElementNode::GetOSRef(SInt32 index)
     return resultPtr;
 }
 
+//Set the OSRef pointer of a node to update the objects associated with the node.
 void ElementNode::SetOSRef(SInt32 index, OSRef* refPtr)
 {
     Assert  ((index >= 0) && (index < (SInt32) fNumFields));
@@ -945,10 +999,10 @@ void ElementNode::SetOSRef(SInt32 index, OSRef* refPtr)
         fFieldOSRefPtrs[index] = refPtr; 
 }
 
+// Gets the complete path of a node, including the names of all its ancestor nodes and the name of the node itself.
 void ElementNode::GetFullPath(StrPtrLen *resultPtr)
 {
     //qtss_printf("ElementNode::GetFullPath this node name %s \n",GetNodeName());
-
     Assert(fPathSPL.Ptr != NULL);   
     
     if (fPathSPL.Len != 0)
@@ -984,6 +1038,7 @@ void ElementNode::GetFullPath(StrPtrLen *resultPtr)
     //qtss_printf("ElementNode::GetFullPath element=%s received full path=%s \n",GetMyName(),resultPtr->Ptr);
 }
 
+//Add the information of the node itself to the response data for processing query requests.
 void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr)
 {
     static char *nullErr = "(null)";
@@ -1021,6 +1076,8 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
 
 #if CHECKACCESS
 /*
+    //Mainly used to determine the permissions of the query object and return error messages when the permissions are insufficient
+    
     StrPtrLen *accessParamsPtr=queryPtr->GetAccess();
     if (accessParamsPtr == NULL)
     {
@@ -1041,7 +1098,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
 */
 #endif
 
-
+    //This step determines non-null
     StrPtrLen* valuePtr = queryPtr->GetValue();
     OSCharArrayDeleter value(NewCharArrayCopy(valuePtr));
     if (!valuePtr || !valuePtr->Ptr)
@@ -1051,7 +1108,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }   
 
-
+    //This step determines non-null
     StrPtrLen *typePtr = queryPtr->GetType();
     OSCharArrayDeleter dataType(NewCharArrayCopy(typePtr));
     if (!typePtr || !typePtr->Ptr)
@@ -1061,6 +1118,8 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }   
 
+    //converts the string type pointed to by typePtr to the corresponding QTSS_AttrDataType enumeration 
+    //and uses the Assert() function to assert it.
     QTSS_AttrDataType attrDataType = qtssAttrDataTypeUnknown;
     if (typePtr && typePtr->Len > 0)
     {   
@@ -1069,6 +1128,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         //qtss_printf("ElementNode::RespondWithSelfAdd theType=%s typeID=%lu \n",dataType.GetObject(), attrDataType);
     }
 
+    //converts the string pointed to by valuePtr to a value of the corresponding type and stores it in the valueBuff array.
     //qtss_printf("ElementNode::RespondWithSelfAdd theValue= %s theType=%s typeID=%lu \n",value.GetObject(), typePtr->Ptr, attrDataType);
     char valueBuff[2048] = "";
     UInt32 len = 2048;
@@ -1080,6 +1140,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }
 
+    //determines whether the type of the current node is eNode
     if (GetMyFieldType() != eNode)
     {   UInt32 result = 500;
         qtss_sprintf(messageBuffer,  "Internal error");
@@ -1087,6 +1148,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }
 
+    //a non-null and length judgment is made on the namePtr
     StrPtrLen *namePtr = queryPtr->GetName();
     OSCharArrayDeleter nameDeleter(NewCharArrayCopy(namePtr));
     if (!namePtr || !namePtr->Ptr || namePtr->Len == 0)
@@ -1096,6 +1158,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }   
     
+    //adds an attribute to the current node, where the attrDataType parameter is the QTSS_AttrDataType enumeration value from the previous conversion.
     err = QTSS_AddInstanceAttribute(GetSource(),nameDeleter.GetObject(), NULL, attrDataType);
     //qtss_printf("QTSS_AddInstanceAttribute(source=%lu, name=%s, NULL, %d, %lu)\n",GetSource(),nameDeleter.GetObject(),attrDataType,accessFlags);
     if (err) 
@@ -1110,7 +1173,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }
     QTSS_Object attrInfoObject;
-    err = QTSS_GetAttrInfoByName(GetSource(), nameDeleter.GetObject(), &attrInfoObject);
+    err = QTSS_GetAttrInfoByName(GetSource(), nameDeleter.GetObject(), &attrInfoObject);//Get the attribute information for the specified name
     if (err) 
     {   UInt32 result = 400;
         qtss_sprintf(messageBuffer,  "QTSS_Error=%ld from QTSS_GetAttrInfoByName",err);
@@ -1119,7 +1182,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
     }
     QTSS_AttributeID attributeID = 0;
     UInt32 attributeLen = sizeof(attributeID);
-    err = QTSS_GetValue (attrInfoObject, qtssAttrID,0, &attributeID, &attributeLen);
+    err = QTSS_GetValue (attrInfoObject, qtssAttrID,0, &attributeID, &attributeLen);//get the unique identifier of the attribute attributeID
     if (err) 
     {   UInt32 result = 400;
         qtss_sprintf(messageBuffer,  "QTSS_Error=%ld from QTSS_GetValue",err);
@@ -1127,7 +1190,7 @@ void ElementNode::RespondWithSelfAdd(QTSS_StreamRef inStream, QueryURI *queryPtr
         return;
     }
     
-    err = QTSS_SetValue (GetSource(), attributeID, 0, valueBuff, len);
+    err = QTSS_SetValue (GetSource(), attributeID, 0, valueBuff, len);//set the value of the attribute to the current node
     if (err) 
     {   UInt32 result = 400;
         qtss_sprintf(messageBuffer,  "QTSS_Error=%ld from QTSS_SetValue",err);
@@ -1142,7 +1205,7 @@ void ElementNode::RespondWithSelf(QTSS_StreamRef inStream, QueryURI *queryPtr)
     //qtss_printf("ElementNode::RespondWithSelf = %s \n",GetNodeName());
 
     static char *nullErr = "(null)";
-    if (QueryURI::kADDCommand == queryPtr->GetCommandID())
+    if (QueryURI::kADDCommand == queryPtr->GetCommandID())//first determines whether the query command is an add command
     {
         if (GetMyFieldType() == eArrayNode)
         {   RespondToAdd(inStream, 0,queryPtr);
@@ -1155,13 +1218,15 @@ void ElementNode::RespondWithSelf(QTSS_StreamRef inStream, QueryURI *queryPtr)
         
     }
     
-    if (QueryURI::kDELCommand == queryPtr->GetCommandID())
+    if (QueryURI::kDELCommand == queryPtr->GetCommandID())//Determines if the query command is a delete command
     {   GetParentNode()->RespondToDel(inStream, GetMyKey(),queryPtr,true);
         return; 
     }
     
         
+    //If the name of the current node is NULL or uninitialised, it is returned directly. 
     if (GetNodeName() == NULL) 
+        
     {   //qtss_printf("ElementNode::RespondWithSelf Node = %s is Uninitialized no name so LEAVE\n",GetNodeName() );
         return;
     }
@@ -1171,12 +1236,12 @@ void ElementNode::RespondWithSelf(QTSS_StreamRef inStream, QueryURI *queryPtr)
         return;
     }
     
-    if (NULL == queryPtr) 
+    if (NULL == queryPtr) //If the queryPtr is empty , it is returned directly.
     {   //qtss_printf("ElementNode::RespondWithSelf NULL == queryPtr EXIT\n");
         return;
     }
 
-    if (queryPtr->fNumFilters > 0)
+    if (queryPtr->fNumFilters > 0)//If the query object queryPtr contains a filter, then a match is required to continue processing.
     {           
         Bool16 foundFilter = false;
         StrPtrLen*  theFilterPtr;
@@ -1199,7 +1264,9 @@ void ElementNode::RespondWithSelf(QTSS_StreamRef inStream, QueryURI *queryPtr)
     parameters &= ~QueryURI::kDebugParam; // clear verbose flag
     parameters &= ~QueryURI::kIndexParam; // clear index flag
     
-    
+    //Different processing is chosen depending on the type of node, 
+    //outputting the node name and node value if it is an element node, 
+    //or the node name if it is an array node.
     Bool16 isVerbosePath = 0 != (parameters & QueryURI::kVerboseParam);
     if (isVerbosePath) 
     {   
@@ -1235,6 +1302,11 @@ void ElementNode::RespondWithSelf(QTSS_StreamRef inStream, QueryURI *queryPtr)
         //qtss_printf(" %s",buffer);
     
     }
+    
+    //Processing is carried out according to the query parameters.
+    //If the query parameter contains the access rights parameter, 
+    //the access rights value of the current node is output. 
+    //If the query parameter contains a type parameter, the type information of the current node is output.
     
     if (parameters)
     {   (void)QTSS_Write(inStream, sParameterDelimeter, 1, NULL, 0);
@@ -1286,7 +1358,9 @@ void ElementNode::RespondWithSelf(QTSS_StreamRef inStream, QueryURI *queryPtr)
 void    ElementNode::RespondToAdd(QTSS_StreamRef inStream, SInt32 index,QueryURI *queryPtr)
 {
     char messageBuffer[1024] = "";
+    //Define a message buffer
 
+    //If the attribute does not have a field, it is not allowed to add
     //qtss_printf("ElementNode::RespondToAdd NODE = %s index = %ld \n",GetNodeName(), (SInt32) index);
     if (GetNumFields() == 0) 
     {
@@ -1297,6 +1371,7 @@ void    ElementNode::RespondToAdd(QTSS_StreamRef inStream, SInt32 index,QueryURI
         return;
     }   
     
+    //Call the RespondWithSelfAdd function if the property type is a node
     if (GetFieldType(index) == eNode)
     {   RespondWithSelfAdd(inStream, queryPtr);
         return;
@@ -1307,21 +1382,25 @@ void    ElementNode::RespondToAdd(QTSS_StreamRef inStream, SInt32 index,QueryURI
     QTSS_Error err = QTSS_NoErr;
     StrPtrLen bufferSPL(messageBuffer);
     
-    
+    // If not initialized, return directly
     if (!fInitialized) 
     {   //qtss_printf("ElementNode::RespondToAdd not Initialized EXIT\n");
         return;
     }
+    
+    // If the query URI is empty, return directly
     if (NULL == queryPtr) 
     {   //qtss_printf("ElementNode::RespondToAdd NULL == queryPtr EXIT\n");
         return;
     }
     
+    // If the stream is empty, return directly
     if (NULL == inStream) 
     {   //qtss_printf("ElementNode::RespondToAdd NULL == inStream EXIT\n");
         return;
     }
     
+    // Get the attribute value pointer, set to nullErr if it's null
     char *dataPtr = GetElementDataPtr(index);
     if (NULL == dataPtr) 
     {   //qtss_printf("ElementNode::RespondToAdd NULL == dataPtr EXIT\n");
@@ -1330,68 +1409,71 @@ void    ElementNode::RespondToAdd(QTSS_StreamRef inStream, SInt32 index,QueryURI
         nullData = true;
     }
     
+    // Set the query URI to have a response
     queryPtr->SetQueryHasResponse();    
 
-    
-    UInt32 accessFlags = 0;
-    StrPtrLen *accessParamsPtr=queryPtr->GetAccess();
-    if (accessParamsPtr != NULL)
-        accessFlags = queryPtr->GetAccessFlags();
+     // get access rights, use the parameters if there are access parameters, otherwise use the property's rights
+    UInt32 accessFlags = 0.
+    StrPtrLen *accessParamsPtr = queryPtr->GetAccess().
+    if (accessParamsPtr ! = NULL)
+        accessFlags = queryPtr->GetAccessFlags().
     else
-        accessFlags = GetAccessPermissions(index);
+        accessFlags = GetAccessPermissions(index).
     
-    
-    
-    StrPtrLen* valuePtr = queryPtr->GetValue();
-    OSCharArrayDeleter value(NewCharArrayCopy(valuePtr));
+    // Get the value of the query URI
+    StrPtrLen* valuePtr = queryPtr->GetValue().
+    OSCharArrayDeleter value(NewCharArrayCopy(valuePtr)).
     if (!valuePtr || !valuePtr->Ptr)
-    {   UInt32 result = 400;
-        qtss_sprintf(messageBuffer,  "No value found");
-        (void) queryPtr->EvalQuery(&result, messageBuffer);
-        return;
+    { UInt32 result = 400.
+        qtss_sprintf(messageBuffer, "No value found").
+        (void) queryPtr->EvalQuery(&result, messageBuffer).
+        return.
     }   
 
-    //qtss_printf("ElementNode::RespondToAdd theValue= %s theType=%s typeID=%lu \n",value.GetObject(), GetAPI_TypeStr(index), GetAPI_Type(index));
-    char valueBuff[2048] = "";
-    UInt32 len = 2048;
-    err = QTSS_StringToValue(value.GetObject(),GetAPI_Type(index), valueBuff, &len);
+    // Convert the value of the query URI to a string
+    char valueBuff[2048] = "".
+    UInt32 len = 2048.
+    err = QTSS_StringToValue(value.GetObject(), GetAPI_Type(index), valueBuff, &len).
     if (err) 
-    {   UInt32 result = 400;
-        qtss_sprintf(messageBuffer,  "QTSS_Error=%ld from QTSS_ConvertStringToType",err);
-        (void) queryPtr->EvalQuery(&result, messageBuffer);
-        return;
+    { UInt32 result = 400.
+        qtss_sprintf(messageBuffer, "QTSS_Error=%ld from QTSS_ConvertStringToType",err).
+        (void) queryPtr->EvalQuery(&result, messageBuffer).
+        return.
     }
 
-    if (GetFieldType(index) != eNode)
+    // If the property type is not a node, do the following
+    if (GetFieldType(index) ! = eNode)
     {   
-        OSCharArrayDeleter typeDeleter(NewCharArrayCopy(queryPtr->GetType()));
-        StrPtrLen theQueryType(typeDeleter.GetObject());
+        // Get the type of the query URI and compare it to the attribute type, or return an error if it is not the same
+        OSCharArrayDeleter typeDeleter(NewCharArrayCopy(queryPtr->GetType())).
+        StrPtrLen theQueryType(typeDeleter.GetObject()).
 
         if (typeDeleter.GetObject())
         {
-            StrPtrLen attributeString(GetAPI_TypeStr(index));
+            StrPtrLen attributeString(GetAPI_TypeStr(index)).
             if (!attributeString.Equal(theQueryType))
-            {   UInt32 result = 400;
-                qtss_sprintf(messageBuffer,  "Type %s does not match attribute type %s",typeDeleter.GetObject(), attributeString.Ptr);
-                (void) queryPtr->EvalQuery(&result, messageBuffer);
-                return;
+            { UInt32 result = 400.
+                qtss_sprintf(messageBuffer, "Type %s does not match attribute type %s",typeDeleter.GetObject(), attributeString.Ptr).
+                (void) queryPtr->EvalQuery(&result, messageBuffer).
+                return.
             }   
         }
         
-        QTSS_Object source = GetSource();
+        // Get the value of the attribute and compare it with the value of the query URI, or return an error if it is not the same
+        QTSS_Object source = GetSource().
 
-        UInt32 tempBuff;
-        UInt32 attributeLen = sizeof(tempBuff);
-        (void) QTSS_GetValue (source, GetAPI_ID(index), 0, &tempBuff, &attributeLen);
-        if (attributeLen != len)
-        {   UInt32 result = 400;
-            qtss_sprintf(messageBuffer,  "Data length %lu does not match attribute len %lu",len, attributeLen);
-            (void) queryPtr->EvalQuery(&result, messageBuffer);
-            return;
+        UInt32 tempBuff.
+        UInt32 attributeLen = sizeof(tempBuff).
+        (void) QTSS_GetValue(source, GetAPI_ID(index), 0, &tempBuff, &attributeLen).
+        if (attributeLen ! = len)
+        { UInt32 result = 400.
+            qtss_sprintf(messageBuffer, "Data length %lu does not match attribute len %lu",len, attributeLen).
+            (void) queryPtr->EvalQuery(&result, messageBuffer).
+            return.
         }
 
-        
-        UInt32 numValues = 0;
+        // Get the number of attributes and add the values to the attribute
+        UInt32 numValues = 0.
         err = QTSS_GetNumValues (source,  GetAPI_ID(index), &numValues);
         if (err) 
         {   UInt32 result = 400;
@@ -1415,7 +1497,7 @@ void    ElementNode::RespondToAdd(QTSS_StreamRef inStream, SInt32 index,QueryURI
 
 void    ElementNode::RespondToSet(QTSS_StreamRef inStream, SInt32 index,QueryURI *queryPtr)
 {
-    static char *nullErr = "(null)";
+    static char *nullErr = "(null)";//If the data pointer is NULL, this string will be used instead
     Bool16 nullData = false;
     QTSS_Error err = QTSS_NoErr;
     char messageBuffer[1024] = "";
@@ -1424,87 +1506,105 @@ void    ElementNode::RespondToSet(QTSS_StreamRef inStream, SInt32 index,QueryURI
     //qtss_printf("ElementNode::RespondToSet NODE = %s index = %ld \n",GetNodeName(), (SInt32) index);
     
     if (!fInitialized) 
-    {   //qtss_printf("ElementNode::RespondToSet not Initialized EXIT\n");
-        return;
+    {   
+        // If the node is not initialized, return directly
+        // qtss_printf("ElementNode::RespondToSet not Initialized EXIT\n").
+        return.
     }
     if (NULL == queryPtr) 
-    {   //qtss_printf("ElementNode::RespondToSet NULL == queryPtr EXIT\n");
-        return;
+    {   
+        // If the query object is NULL, return it directly
+        // qtss_printf("ElementNode::RespondToSet NULL == queryPtr EXIT\n").
+        return.
     }
-    
-    if (NULL == inStream) 
-    {   //qtss_printf("ElementNode::RespondToSet NULL == inStream EXIT\n");
-        return;
-    }
-    
-    char *dataPtr = GetElementDataPtr(index);
-    if (NULL == dataPtr) 
-    {   //qtss_printf("ElementNode::RespondToSet NULL == dataPtr EXIT\n");
-        //  return;
-        dataPtr = nullErr;
-        nullData = true;
-    }
-    
-    queryPtr->SetQueryHasResponse();    
 
-    OSCharArrayDeleter typeDeleter(NewCharArrayCopy(queryPtr->GetType()));
-    StrPtrLen theQueryType(typeDeleter.GetObject());
+    if (NULL == inStream) 
+    {   
+        // If the input stream is NULL, return it directly
+        // qtss_printf("ElementNode::RespondToSet NULL == inStream EXIT\n").
+        return.
+    }
+
+    char *dataPtr = GetElementDataPtr(index).
+    if (NULL == dataPtr) 
+    {   
+        // If the data pointer is NULL, the string pointed to by nullErr will be used instead
+        // qtss_printf("ElementNode::RespondToSet NULL == dataPtr EXIT\n").
+        // return.
+        dataPtr = nullErr.
+        nullData = true.
+    }
+
+    // Set the query flag
+    queryPtr->SetQueryHasResponse().    
+
+    // Get the query type
+    OSCharArrayDeleter typeDeleter(NewCharArrayCopy(queryPtr->GetType())).
+    StrPtrLen theQueryType(typeDeleter.GetObject()).
 
     if (theQueryType.Len > 0)
-    {   StrPtrLen attributeString(GetAPI_TypeStr(index));
+    {   
+        // If the query type is not equal to the attribute type, return an error message
+        StrPtrLen attributeString(GetAPI_TypeStr(index)).
         if (!attributeString.Equal(theQueryType))
-        {   UInt32 result = 400;
-            qtss_sprintf(messageBuffer,  "Type %s does not match attribute type %s",typeDeleter.GetObject(), attributeString.Ptr);
-            (void) queryPtr->EvalQuery(&result, messageBuffer);
-            return;
+        {   
+            UInt32 result = 400.
+            qtss_sprintf(messageBuffer, "Type %s does not match attribute type %s",typeDeleter.GetObject(), attributeString.Ptr).
+            (void) queryPtr->EvalQuery(&result, messageBuffer).
+            return.
         }   
     }
 
     if (0 == (GetAccessPermissions(index) & qtssAttrModeWrite)) 
     {
-        UInt32 result = 400;
-        qtss_sprintf(messageBuffer,  "Attribute is read only. Action not allowed");
-        (void) queryPtr->EvalQuery(&result, messageBuffer);
-        return;
+        // If the attribute is read-only, return an error message
+        UInt32 result = 400.
+        qtss_sprintf(messageBuffer, "Attribute is read only. Action not allowed").
+        (void) queryPtr->EvalQuery(&result, messageBuffer).
+        return.
     }
 
     if (GetFieldType(index) == eNode)
     {   
-        UInt32 result = 400;
-        qtss_sprintf(messageBuffer,  "Set of type %s not allowed",typeDeleter.GetObject());
-        //qtss_printf("ElementNode::RespondToSet (GetFieldType(index) == eNode) %s\n",messageBuffer);
-        (void) queryPtr->EvalQuery(&result, messageBuffer);
-        return;
+        // If the property type is eNode, return an error message
+        UInt32 result = 400.
+        qtss_sprintf(messageBuffer, "Set of type %s not allowed",typeDeleter.GetObject()).
+        //qtss_printf("ElementNode::RespondToSet (GetFieldType(index) == eNode) %s\n",messageBuffer).
+        (void) queryPtr->EvalQuery(&result, messageBuffer).
+        return.
     }
     else do 
     {   
-        
-        StrPtrLen* valuePtr = queryPtr->GetValue();
-        if (!valuePtr || !valuePtr->Ptr) break;
-    
-        char valueBuff[2048] = "";
-        UInt32 len = 2048;
-        OSCharArrayDeleter value(NewCharArrayCopy(valuePtr));
-        
-        //qtss_printf("ElementNode::RespondToSet valuePtr->Ptr= %s\n",value.GetObject());
-        
-        err = QTSS_StringToValue(value.GetObject(),GetAPI_Type(index), valueBuff, &len);
+        // Convert query values to property types
+        StrPtrLen* valuePtr = queryPtr->GetValue().
+        if (!valuePtr || !valuePtr->Ptr) break.
+
+        char valueBuff[2048] = "".
+        UInt32 len = 2048.
+        OSCharArrayDeleter value(NewCharArrayCopy(valuePtr)).
+
+        //qtss_printf("ElementNode::RespondToSet valuePtr->Ptr= %s\n",value.GetObject()).
+
+        err = QTSS_StringToValue(value.GetObject(),GetAPI_Type(index), valueBuff, &len).
         if (err) 
-        {   //qtss_sprintf(messageBuffer,  "QTSS_Error=%ld from QTSS_ConvertStringToType",err);
-            break;
+        { //qtss_sprintf(messageBuffer, "QTSS_Error=%ld from QTSS_ConvertStringToType",err).
+            break.
         }
-        
-        //qtss_printf("ElementNode::RespondToSet QTSS_SetValue object=%lu attrID=%lu, index = %lu valuePtr=%lu valuelen =%lu \n",GetSource(),GetAPI_ID(index), GetAttributeIndex(index), valueBuff,len);
-        err = QTSS_SetValue (GetSource(), GetAPI_ID(index), GetAttributeIndex(index), valueBuff, len);
+
+        //qtss_printf("ElementNode::RespondToSet QTSS_SetValue object=%lu attrID=%lu, index = %lu valuePtr=%lu valuelen =%lu \n",GetSource(),GetAPI_ ID(index), GetAttributeIndex(index), valueBuff,len).
+        // Set the attribute value
+        err = QTSS_SetValue (GetSource(), GetAPI_ID(index), GetAttributeIndex(index), valueBuff, len).
         if (err) 
-        {   //qtss_sprintf(messageBuffer,  "QTSS_Error=%ld from QTSS_SetValue",err);
-            break;
+        { //qtss_sprintf(messageBuffer, "QTSS_Error=%ld from QTSS_SetValue",err).
+            break.
         }   
-            
-    } while (false);
-    
-    if (err != QTSS_NoErr)
-    {   UInt32 result = 400;
+
+    } while (false).
+
+    if (err ! = QTSS_NoErr)
+    {   
+        // If an error occurs, return the error message
+        UInt32 result = 400.
         (void) queryPtr->EvalQuery(&result, messageBuffer);
         //qtss_printf("ElementNode::RespondToSet %s len = %lu ",messageBuffer, result);
         return;
@@ -1512,8 +1612,11 @@ void    ElementNode::RespondToSet(QTSS_StreamRef inStream, SInt32 index,QueryURI
     
 }
 
+//The main function is to delete properties
 void    ElementNode::RespondToDel(QTSS_StreamRef inStream, SInt32 index,QueryURI *queryPtr,Bool16 delAttribute)
 {
+    //First some pointers are checked for non-null, 
+    //then the GetNumFields function checks if the attribute to be deleted exists and returns an error message if the attribute cannot be deleted
     static char *nullErr = "(null)";
     Bool16 nullData = false;
     QTSS_Error err = QTSS_NoErr;
@@ -1521,6 +1624,7 @@ void    ElementNode::RespondToDel(QTSS_StreamRef inStream, SInt32 index,QueryURI
     StrPtrLen bufferSPL(messageBuffer);
     
     //qtss_printf("ElementNode::RespondToDel NODE = %s index = %ld \n",GetNodeName(), (SInt32) index);
+    
     
     if (!fInitialized) 
     {   //qtss_printf("ElementNode::RespondToDel not Initialized EXIT\n");
@@ -1549,6 +1653,8 @@ void    ElementNode::RespondToDel(QTSS_StreamRef inStream, SInt32 index,QueryURI
         return;
     }      
     
+    //gets the data pointer to the property to be deleted and checks it for non-null.
+    //If the data pointer is null, the null pointer is represented by a string
     char *dataPtr = GetElementDataPtr(index);
     if (NULL == dataPtr) 
     {   //qtss_printf("ElementNode::RespondToDel NULL == dataPtr EXIT\n");
@@ -1559,16 +1665,7 @@ void    ElementNode::RespondToDel(QTSS_StreamRef inStream, SInt32 index,QueryURI
     
     queryPtr->SetQueryHasResponse();    
 
-    // DMS - Removeable is no longer a permission bit
-    //
-    //if (GetMyFieldType() != eArrayNode && 0 == (GetAccessPermissions(index) & qtssAttrModeRemoveable)) 
-    //{
-    //  UInt32 result = 405;
-    //  qtss_sprintf(messageBuffer,  "Attribute is not removable. Action not allowed");
-    //  (void) queryPtr->EvalQuery(&result, messageBuffer);
-    //  return;
-    //} 
-    
+    //remove the attribute
     if (GetMyFieldType() == eArrayNode && !delAttribute)
     {   
         UInt32 result = 500;
@@ -1599,6 +1696,7 @@ void    ElementNode::RespondToDel(QTSS_StreamRef inStream, SInt32 index,QueryURI
     
 }
 
+//Find the filter in the queryPtr object for the node whose name is specified by the index parameter
 Bool16 ElementNode::IsFiltered(SInt32 index,QueryURI *queryPtr)
 {
     Bool16 foundFilter = false;
@@ -1614,6 +1712,10 @@ Bool16 ElementNode::IsFiltered(SInt32 index,QueryURI *queryPtr)
     return foundFilter;
 }
     
+//This function is a function used to handle the add operation and accepts two parameters: 
+//one for the element to be added and another for the container to store the element. 
+//The function completes the add operation by inserting the element to be added at the end of the container.
+
 void ElementNode::RespondToGet(QTSS_StreamRef inStream, SInt32 index,QueryURI *queryPtr)
 {
     static char *nullErr = "(null)";
@@ -1739,6 +1841,8 @@ void ElementNode::RespondToGet(QTSS_StreamRef inStream, SInt32 index,QueryURI *q
 
 }
 
+//The RespondToKey function calls the appropriate RespondToGet, RespondToSet, RespondToAdd or RespondToDel functions depending on the command type in the QueryURI object, 
+
 void    ElementNode::RespondToKey(QTSS_StreamRef inStream, SInt32 index,QueryURI *queryPtr)
 {
     SInt32 command = queryPtr->GetCommandID();
@@ -1761,6 +1865,7 @@ void    ElementNode::RespondToKey(QTSS_StreamRef inStream, SInt32 index,QueryURI
         
 }
 
+//the RespondWithNodeName function returns the path to the current node.
 void ElementNode::RespondWithNodeName(QTSS_StreamRef inStream, QueryURI * /*unused queryPtr*/) 
 {
     
@@ -1786,7 +1891,16 @@ void ElementNode::RespondWithNodeName(QTSS_StreamRef inStream, QueryURI * /*unus
     //qtss_printf("\n");
     
 }
-    
+
+//Based on the path information in the QueryURI object, 
+//the node is recursively queried to the specified node and the RespondToQuery function is called to process it.
+//If the current node is a leaf node and the path has reached the end, 
+//the RespondWithNodeName function is called to return the current node path,
+//otherwise it continues to recursively query the next level node.
+//If the current node is not a leaf node and the QueryURI object contains a filter, 
+//the corresponding child node is queried and processed according to the filter, 
+//otherwise the RespondToKey function is called.  
+
 void ElementNode::RespondWithSingleElement(QTSS_StreamRef inStream, QueryURI *queryPtr, StrPtrLen *currentSegmentPtr) 
 {
         
@@ -1873,7 +1987,7 @@ void ElementNode::RespondWithSingleElement(QTSS_StreamRef inStream, QueryURI *qu
     
 }
 
-
+//Returns the values of all element nodes.
 void ElementNode::RespondWithAllElements(QTSS_StreamRef inStream, QueryURI *queryPtr, StrPtrLen *currentSegmentPtr)
 {
     //qtss_printf("ElementNode::RespondWithAllElements %s\n",GetNodeName());
@@ -1956,7 +2070,7 @@ void ElementNode::RespondWithAllElements(QTSS_StreamRef inStream, QueryURI *quer
 }
 
 
-
+//Returns the values of all nodes.
 void ElementNode::RespondWithAllNodes(QTSS_StreamRef inStream, QueryURI *queryPtr, StrPtrLen *currentSegmentPtr) 
 {
     
@@ -1998,6 +2112,7 @@ void ElementNode::RespondWithAllNodes(QTSS_StreamRef inStream, QueryURI *queryPt
     }
 }
 
+//Returns the corresponding result based on the query URI.
 void ElementNode::RespondToQuery(QTSS_StreamRef inStream, QueryURI *queryPtr,StrPtrLen *currentPathPtr)
 {
     //qtss_printf("----- ElementNode::RespondToQuery ------\n");
@@ -2094,6 +2209,12 @@ void ElementNode::RespondToQuery(QTSS_StreamRef inStream, QueryURI *queryPtr,Str
     //qtss_printf("ElementNode::RespondToQuery LEAVE\n");
 }
 
+//The purpose of this function is to set nodes. It accepts QueryURI objects, current path, and QTSS_ Initialize_ Params object as a parameter.
+//The function first performs some initialization operations on parameters and variables.
+//Next, it retrieves the next path segment and determines whether all elements need to be set.
+//If all elements need to be set, call the SetUpAllElements() function.
+//If recursion is required, call the SetUpAllNodes() function.
+//Otherwise, obtain the index of the next path segment and call the SetUpSingleElement() function.
 
 void ElementNode::SetupNodes(QueryURI *queryPtr,StrPtrLen *currentPathPtr,QTSS_Initialize_Params *initParams)
 {
@@ -2143,6 +2264,9 @@ void ElementNode::SetupNodes(QueryURI *queryPtr,StrPtrLen *currentPathPtr,QTSS_I
 
 }
 
+//The purpose of this function is to obtain the filtered attribute names. It accepts an ElementDataFields structure and QTSS_ AttributeID object as a parameter.
+//It calls QTSS_ GetValueAsString() function to obtain the property name.
+//If the length of the name is less than eMaxAttributeNameSize, it is copied into the structure.
 void ElementNode::GetFilteredAttributeName(ElementDataFields* fieldPtr, QTSS_AttributeID theID)
 {   
     fieldPtr->fFieldLen = 0;
@@ -2159,6 +2283,9 @@ void ElementNode::GetFilteredAttributeName(ElementDataFields* fieldPtr, QTSS_Att
     }
 }
 
+//Obtain the filtered attribute ID. It accepts two strings and one QTSS_ AttributeID pointer as parameter
+//It checks whether the parent node name is' server 'and whether the child node name is' qtssSvrClientSessions' or' qtssSvrModuleObjects'.
+//If the attribute ID is found, store it at the location pointed to by the foundID pointer and set the foundID to true.
 Bool16 ElementNode::GetFilteredAttributeID(char *parentName, char *nodeName, QTSS_AttributeID* foundID)
 {
     Bool16 found = false;
@@ -2180,6 +2307,9 @@ Bool16 ElementNode::GetFilteredAttributeID(char *parentName, char *nodeName, QTS
     return found;
 };
 
+//Determine whether the node is a preference container.
+//Check if the node name is' qtssSvrPreferences' or 'qtssModPrefs'.
+//If it is a preference setting container, store its corresponding attribute ID at the location pointed to by the foundID pointer and set find to true.
 Bool16 ElementNode::IsPreferenceContainer(char *nodeName, QTSS_AttributeID* foundID)
 {
      Bool16 found = false;
@@ -2209,6 +2339,10 @@ ElementNode::ElementDataFields AdminClass::sAdminFieldIDs[] =
 };
 
 
+//Initialize AdminClass object
+//Calling ElementNode_ The InsertPtr() function is used to insert some pointers.
+//Obtain the root path and call the SetupNodes() function.
+//Call the SetNumFields() function to set the number of fields.
 
 void AdminClass::Initialize(QTSS_Initialize_Params *initParams, QueryURI *queryPtr) 
 {   
@@ -2263,6 +2397,9 @@ void AdminClass::Initialize(QTSS_Initialize_Params *initParams, QueryURI *queryP
 
 };
 
+//Set up a single node.
+//The function first sets the nodes based on the index.
+//If the index is eServer, the Initialize() function is called to initialize the node.
 void AdminClass::SetUpSingleNode(QueryURI *queryPtr,  StrPtrLen *currentSegmentPtr, StrPtrLen *nextSegmentPtr, SInt32 index, QTSS_Initialize_Params *initParams) 
 {
     //qtss_printf("-------- AdminClass::SetUpSingleNode ---------- \n");
@@ -2279,12 +2416,16 @@ void AdminClass::SetUpSingleNode(QueryURI *queryPtr,  StrPtrLen *currentSegmentP
     };
     
 }
+
+//Set individual elements
 void AdminClass::SetUpSingleElement(QueryURI *queryPtr, StrPtrLen *currentSegmentPtr,StrPtrLen *nextSegmentPtr, SInt32 index, QTSS_Initialize_Params *initParams) 
 {
     //qtss_printf("---------AdminClass::SetUpSingleElement------- \n");
     SetUpSingleNode(queryPtr,currentSegmentPtr, nextSegmentPtr, index, initParams);
 }
 
+//The destructor of the AdminClass object.
+//Delete the memory pointed to by the fNodePtr pointer and remove the pointer from the pointer table
 AdminClass::~AdminClass() 
 {   //qtss_printf("AdminClass::~AdminClass() \n");
     delete (ElementNode*) fNodePtr;ElementNode_RemovePtr(fNodePtr,"AdminClass::~AdminClass ElementNode* fNodePtr");
