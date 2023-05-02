@@ -1,29 +1,3 @@
-
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-
 #include "QueryParamList.h"
 
 #include "StringParser.h"
@@ -34,7 +8,6 @@
 #include "SafeStdLib.h"
 QueryParamList::QueryParamList( StrPtrLen* querySPL )
 {
-    // ctor from StrPtrLen
     fNameValueQueryParamlist = NEW PLDoubleLinkedList<QueryParamListElement>;
 
     this->BulidList( querySPL );    
@@ -43,7 +16,6 @@ QueryParamList::QueryParamList( StrPtrLen* querySPL )
 
 QueryParamList::QueryParamList( char* queryString )
 {
-    // ctor from char*
     StrPtrLen       querySPL( queryString );
 
     fNameValueQueryParamlist = NEW PLDoubleLinkedList<QueryParamListElement>;
@@ -54,8 +26,6 @@ QueryParamList::QueryParamList( char* queryString )
 
 void QueryParamList::BulidList( StrPtrLen* querySPL )
 {
-    // parse the string and build the name/value list from the tokens.
-    // the string is a 'form' encoded query string ( see rfc - 1808 )
     
     StringParser    queryParser( querySPL );
     
@@ -64,17 +34,17 @@ void QueryParamList::BulidList( StrPtrLen* querySPL )
         StrPtrLen       theCGIParamName;
         StrPtrLen       theCGIParamValue;
         
-        queryParser.ConsumeUntil(&theCGIParamName, '=');        // leaves "=..." in cgiParser, puts item keywd in theCGIParamName
+        queryParser.ConsumeUntil(&theCGIParamName, '=');        
         
         if ( queryParser.GetDataRemaining() > 1  )
         {
-            queryParser.ConsumeLength(&theCGIParamValue, 1 );   // the '='
+            queryParser.ConsumeLength(&theCGIParamValue, 1 );  
         
-            queryParser.ConsumeUntil(&theCGIParamValue, '&');   // our value will end by here...
+            queryParser.ConsumeUntil(&theCGIParamValue, '&');   
             
             AddNameValuePairToList( theCGIParamName.GetAsCString(), theCGIParamValue.GetAsCString() );
             
-            queryParser.ConsumeLength(&theCGIParamValue, 1 );   // the '='
+            queryParser.ConsumeLength(&theCGIParamValue, 1 );  
             
         }
     }
@@ -83,7 +53,7 @@ void QueryParamList::BulidList( StrPtrLen* querySPL )
 
 static void  PrintNameAndValue( PLDoubleLinkedListNode<QueryParamListElement> *node,  void *userData )
 {
-    // used by QueryParamList::PrintAll
+  
     QueryParamListElement*  nvPair = node->fElement;
     
     qtss_printf( "qpl: %s, name %s, val %s\n", (char*)userData, nvPair->mName, nvPair->mValue );
@@ -92,19 +62,14 @@ static void  PrintNameAndValue( PLDoubleLinkedListNode<QueryParamListElement> *n
 
 void QueryParamList::PrintAll( char *idString )
 {
-    // print name and value of each item in the list, print each pair preceded by "idString"
+   
     fNameValueQueryParamlist->ForEach( PrintNameAndValue, idString );
 }
 
 
 static bool  CompareStrToName( PLDoubleLinkedListNode<QueryParamListElement> *node,  void *userData )
 {
-    /*
-        make a case insenstitive comparison between "node" name and the userData
-        
-        used by QueryParamList::DoFindCGIValueForParam
-    */
-    
+  
     QueryParamListElement*  nvPair = node->fElement;
     StrPtrLen               name( nvPair->mName );
     
@@ -117,11 +82,7 @@ static bool  CompareStrToName( PLDoubleLinkedListNode<QueryParamListElement> *no
 
 const char *QueryParamList::DoFindCGIValueForParam( char *name )
 {
-    /*
-        return the first value where the paramter name matches "name"
-        use case insenstitive comparison
-    
-    */
+   
     PLDoubleLinkedListNode<QueryParamListElement>*  node;
 
     node = fNameValueQueryParamlist->ForEachUntil( CompareStrToName, name );
@@ -140,8 +101,6 @@ const char *QueryParamList::DoFindCGIValueForParam( char *name )
     
 void QueryParamList::AddNameValuePairToList( char* name, char* value  )
 {
-    // add the name/value pair to the by creating the holder struct
-    // then adding that as the element in the linked list
     
     PLDoubleLinkedListNode<QueryParamListElement>*      nvNode;
     QueryParamListElement*      nvPair;
@@ -151,8 +110,7 @@ void QueryParamList::AddNameValuePairToList( char* name, char* value  )
     
     nvPair = NEW  QueryParamListElement( name, value );
     
-    
-    // create a node to hold the pair
+
     nvNode = NEW PLDoubleLinkedListNode<QueryParamListElement> ( nvPair );
     
     // add it to the list
@@ -163,9 +121,6 @@ void QueryParamList::AddNameValuePairToList( char* name, char* value  )
 
 void QueryParamList::DecodeArg( char *ioCodedPtr )
 {
-    // perform In-Place  &hex and + to space decoding of the parameter
-    //  on input, ioCodedPtr mau contain encoded text, on exit ioCodedPtr will be plain text
-    // on % decoding errors, the 
     
     if ( !ioCodedPtr ) 
         return;
@@ -190,10 +145,10 @@ void QueryParamList::DecodeArg( char *ioCodedPtr )
                     *destPtr++ = (char)::strtoul( hexBuff, NULL, 0 );
                 }
                 else
-                {   // not a valid encoding
-                    *destPtr++ = '%';           // put back the pct sign
-                    *destPtr++ = hexBuff[2];    // put back the first digit too.
-                    *destPtr++ = *curChar;      // and this one!
+                {   
+                    *destPtr++ = '%';           
+                    *destPtr++ = hexBuff[2];    
+                    *destPtr++ = *curChar;     
                     
                 }
                 lineState = kLastWasText;
@@ -228,8 +183,8 @@ void QueryParamList::DecodeArg( char *ioCodedPtr )
                     }
                     else
                     {   
-                        *destPtr++ = '%';       // put back the pct sign
-                        *destPtr++ = *curChar;  // and this one!
+                        *destPtr++ = '%';       
+                        *destPtr++ = *curChar;  
                         lineState = kLastWasText;
                     }
                 }
@@ -246,8 +201,6 @@ void QueryParamList::DecodeArg( char *ioCodedPtr )
 
 Bool16 QueryParamList::IsHex( char c )
 {
-    // return true if char c is a valid hexidecimal digit
-    // false otherwise.
     
     if ( c >= '0' && c <= '9' )
         return true;
