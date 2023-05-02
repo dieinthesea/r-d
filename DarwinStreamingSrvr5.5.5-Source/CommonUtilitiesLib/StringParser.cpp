@@ -1,36 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       StringParser.cpp
-
-    Contains:   Implementation of StringParser class.  
-                    
-    
-    
-*/
-
 #include "StringParser.h"
 
 UInt8 StringParser::sNonWordMask[] =
@@ -41,7 +8,7 @@ UInt8 StringParser::sNonWordMask[] =
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //30-39 
     1, 1, 1, 1, 1, 0, 1, 1, 1, 1, //40-49 - is a word
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //50-59
-    1, 1, 1, 1, 1, 0, 0, 0, 0, 0, //60-69 //stop on every character except a letter
+    1, 1, 1, 1, 1, 0, 0, 0, 0, 0, //60-69 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //70-79
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //80-89
     0, 1, 1, 1, 1, 0, 1, 0, 0, 0, //90-99 _ is a word
@@ -65,14 +32,13 @@ UInt8 StringParser::sNonWordMask[] =
 
 UInt8 StringParser::sWordMask[] =
 {
-    // Inverse of the above
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //0-9 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //10-19 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //20-29
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //30-39 
     0, 0, 0, 0, 0, 1, 0, 0, 0, 0, //40-49 - is a word
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //50-59
-    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, //60-69 //stop on every character except a letter
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, //60-69 
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //70-79
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //80-89
     1, 0, 0, 0, 0, 1, 0, 1, 1, 1, //90-99 _ is a word
@@ -100,7 +66,7 @@ UInt8 StringParser::sDigitMask[] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //10-19 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //20-29
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //30-39
-    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, //40-49 //stop on every character except a number
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1, //40-49 
     1, 1, 1, 1, 1, 1, 1, 1, 0, 0, //50-59
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //60-69 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //70-79
@@ -127,7 +93,7 @@ UInt8 StringParser::sDigitMask[] =
 UInt8 StringParser::sEOLMask[] =
 {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //0-9   
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, //10-19    //'\r' & '\n' are stop conditions
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, //10-19   
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //20-29
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //30-39 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //40-49
@@ -156,10 +122,10 @@ UInt8 StringParser::sEOLMask[] =
 
 UInt8 StringParser::sWhitespaceMask[] =
 {
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 0, //0-9      // stop on '\t'
-    0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //10-19    // '\r', \v', '\f' & '\n'
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 0, //0-9     
+    0, 0, 0, 0, 1, 1, 1, 1, 1, 1, //10-19    
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //20-29
-    1, 1, 0, 1, 1, 1, 1, 1, 1, 1, //30-39   //  ' '
+    1, 1, 0, 1, 1, 1, 1, 1, 1, 1, //30-39   
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //40-49
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //50-59
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //60-69
@@ -186,10 +152,10 @@ UInt8 StringParser::sWhitespaceMask[] =
 
 UInt8 StringParser::sEOLWhitespaceMask[] =
 {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //0-9     // \t is a stop
-    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, //10-19    //'\r' & '\n' are stop conditions
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //0-9     
+    1, 1, 1, 1, 0, 0, 0, 0, 0, 0, //10-19    
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //20-29
-    0, 0, 1, 0, 0, 0, 0, 0, 0, 0, //30-39   ' '  is a stop
+    0, 0, 1, 0, 0, 0, 0, 0, 0, 0, //30-39   
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //40-49
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //50-59
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //60-69  
@@ -255,8 +221,6 @@ void StringParser::ConsumeLength(StrPtrLen* spl, SInt32 inLength)
     if (this->ParserIsEmpty(spl))
         return;
 
-    //sanity check to make sure we aren't being told to run off the end of the
-    //buffer
     if ((fEndGet - fStartGet) < inLength)
         inLength = fEndGet - fStartGet;
     
@@ -271,7 +235,7 @@ void StringParser::ConsumeLength(StrPtrLen* spl, SInt32 inLength)
             AdvanceMark();
     }
     else
-        fStartGet += inLength;  // ***may mess up line number if we back up too much
+        fStartGet += inLength;  
 }
 
 
@@ -379,14 +343,12 @@ Bool16 StringParser::ExpectEOL()
     if (this->ParserIsEmpty(NULL))
         return false;
 
-    //This function processes all legal forms of HTTP / RTSP eols.
-    //They are: \r (alone), \n (alone), \r\n
     Bool16 retVal = false;
     if ((fStartGet < fEndGet) && ((*fStartGet == '\r') || (*fStartGet == '\n')))
     {
         retVal = true;
         AdvanceMark();
-        //check for a \r\n, which is the most common EOL sequence.
+       
         if ((fStartGet < fEndGet) && ((*(fStartGet - 1) == '\r') && (*fStartGet == '\n')))
             AdvanceMark();
     }
@@ -398,14 +360,11 @@ void StringParser::ConsumeEOL(StrPtrLen* outString)
     if (this->ParserIsEmpty(outString))
         return;
 
-	//This function processes all legal forms of HTTP / RTSP eols.
-	//They are: \r (alone), \n (alone), \r\n
 	char *originalStartGet = fStartGet;
 	
 	if ((fStartGet < fEndGet) && ((*fStartGet == '\r') || (*fStartGet == '\n')))
 	{
 		AdvanceMark();
-		//check for a \r\n, which is the most common EOL sequence.
 		if ((fStartGet < fEndGet) && ((*(fStartGet - 1) == '\r') && (*fStartGet == '\n')))
 			AdvanceMark();
 	}
@@ -419,19 +378,14 @@ void StringParser::ConsumeEOL(StrPtrLen* outString)
 
 void StringParser::UnQuote(StrPtrLen* outString)
 {
-    // If a string is contained within double or single quotes 
-    // then UnQuote() will remove them. - [sfu]
     
-    // sanity check
     if (outString->Ptr == NULL || outString->Len < 2)
         return;
         
-    // remove begining quote if it's there.
     if (outString->Ptr[0] == '"' || outString->Ptr[0] == '\'')
     {
         outString->Ptr++; outString->Len--;
     }
-    // remove ending quote if it's there.
     if ( outString->Ptr[outString->Len-1] == '"' || 
          outString->Ptr[outString->Len-1] == '\'' )
     {
@@ -446,7 +400,6 @@ void StringParser::AdvanceMark()
 
    if ((*fStartGet == '\n') || ((*fStartGet == '\r') && (fStartGet[1] != '\n')))
     {
-        // we are progressing beyond a line boundary (don't count \r\n twice)
         fCurLineNumber++;
     }
     fStartGet++;
