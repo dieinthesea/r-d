@@ -1,35 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       Task.cpp
-
-    Contains:   implements Task class
-                    
-    
-*/
-
 #include "Task.h"
 #include "OS.h"
 #include "OSMemory.h"
@@ -61,7 +29,7 @@ void Task::SetTaskName(char* name)
    
    ::strncpy(fTaskName,sTaskStateStr,sizeof(fTaskName));
    ::strncat(fTaskName,name,sizeof(fTaskName));
-   fTaskName[sizeof(fTaskName) -1] = 0; //terminate in case it is longer than ftaskname.
+   fTaskName[sizeof(fTaskName) -1] = 0; 
    
 }
 
@@ -81,8 +49,6 @@ Bool16 Task::Valid()
 
 Task::EventFlags Task::GetEvents()
 {
-    //Mask off every event currently in the mask except for the alive bit, of course,
-    //which should remain unaffected and unreported by this call.
     EventFlags events = fEvents & kAliveOff;
     (void)atomic_sub(&fEvents, events);
     return events;
@@ -92,10 +58,7 @@ void Task::Signal(EventFlags events)
 {
     if (!this->Valid())
         return;
-        
-    //Fancy no mutex implementation. We atomically mask the new events into
-    //the event mask. Because atomic_or returns the old state of the mask,
-    //we only schedule this task once.
+
     events |= kAlive;
     EventFlags oldEvents = atomic_or(&fEvents, events);
     if ((!(oldEvents & kAlive)) && (TaskThreadPool::sNumTaskThreads > 0))
@@ -142,8 +105,7 @@ void TaskThread::Entry()
     {
         theTask = this->WaitForTask();
 
-        //
-        // WaitForTask returns NULL when it is time to quit
+	// WaitForTask returns NULL when it is time to quit
         if (theTask == NULL || false == theTask->Valid() )
             return;
                     
