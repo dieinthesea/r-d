@@ -100,45 +100,36 @@ void    Task::GlobalUnlock()
 void TaskThread::Entry()
 {
     Task* theTask = NULL;
-    
     while (true) 
     {
         theTask = this->WaitForTask();
-
 	// WaitForTask returns NULL when it is time to quit
         if (theTask == NULL || false == theTask->Valid() )
-            return;
-                    
+            return;       
         Bool16 doneProcessingEvent = false;
-        
         while (!doneProcessingEvent)
         {
-            //If a task holds locks when it returns from its Run function,
-            //that would be catastrophic and certainly lead to a deadlock
+            //If a task holds locks when it returns from its Run(), may lead deadlock
 #if DEBUG
             Assert(this->GetNumLocksHeld() == 0);
             Assert(theTask->fInRunCount == 0);
             theTask->fInRunCount++;
 #endif
-            theTask->fUseThisThread = NULL; // Each invocation of Run must independently
-                                            // request a specific thread.
+            theTask->fUseThisThread = NULL; // Each invocation of Run must independently and request a specific thread.
             SInt64 theTimeout = 0;
-            
             if (theTask->fWriteLock)
             {   
                 OSMutexWriteLocker mutexLocker(&TaskThreadPool::sMutexRW);
-                if (TASK_DEBUG) qtss_printf("TaskThread::Entry run global locked TaskName=%s CurMSec=%.3f thread=%ld task=%ld\n", theTask->fTaskName, OS::StartTimeMilli_Float() ,(SInt32) this,(SInt32) theTask);
-                
+                if (TASK_DEBUG) sss_printf("TaskThread::Entry run global locked TaskName=%s CurMSec=%.3f thread=%ld task=%ld\n", theTask->fTaskName, OS::StartTimeMilli_Float() ,(SInt32) this,(SInt32) theTask);
                 theTimeout = theTask->Run();
                 theTask->fWriteLock = false;
             }
             else
             {
                 OSMutexReadLocker mutexLocker(&TaskThreadPool::sMutexRW);
-                if (TASK_DEBUG) qtss_printf("TaskThread::Entry run TaskName=%s CurMSec=%.3f thread=%ld task=%ld\n", theTask->fTaskName, OS::StartTimeMilli_Float(), (SInt32) this,(SInt32) theTask);
+                if (TASK_DEBUG) sss_printf("TaskThread::Entry run TaskName=%s CurMSec=%.3f thread=%ld task=%ld\n", theTask->fTaskName, OS::StartTimeMilli_Float(), (SInt32) this,(SInt32) theTask);
 
                 theTimeout = theTask->Run();
-            
             }
 #if DEBUG
             Assert(this->GetNumLocksHeld() == 0);
@@ -176,18 +167,14 @@ void TaskThread::Entry()
             }
             else if (theTimeout == 0)
             {
-                //We want to make sure that 100% definitely the task's Run function WILL
-                //be invoked when another thread calls Signal. We also want to make sure
-                //that if an event sneaks in right as the task is returning from Run()
-                //(via Signal) that the Run function will be invoked again.
+                //task's Run() will be invoked when another thread calls Signal. 
                 doneProcessingEvent = compare_and_store(Task::kAlive, 0, &theTask->fEvents);
                 if (doneProcessingEvent)
                     theTask = NULL; 
             }
             else
             {
-                //note that if we get here, we don't reset theTask, so it will get passed into
-                //WaitForTask
+                //donnot reset theTask, it will get passed into WaitForTask
                 if (TASK_DEBUG) qtss_printf("TaskThread::Entry insert TaskName=%s in timer heap thread=%lu elem=%lu task=%ld timeout=%.2f\n", theTask->fTaskName,  (UInt32) this, (UInt32) &theTask->fTimerHeapElem,(SInt32) theTask, (float)theTimeout / (float) 1000);
                 theTask->fTimerHeapElem.SetValue(OS::Milliseconds() + theTimeout);
                 fHeap.Insert(&theTask->fTimerHeapElem);
@@ -223,37 +210,26 @@ Task* TaskThread::WaitForTask()
     while (true)
     {
         SInt64 theCurrentTime = OS::Milliseconds();
-        
         if ((fHeap.PeekMin() != NULL) && (fHeap.PeekMin()->GetValue() <= theCurrentTime))
         {    
-            if (TASK_DEBUG) qtss_printf("TaskThread::WaitForTask found timer-task=%s thread %lu fHeap.CurrentHeapSize(%lu) taskElem = %lu enclose=%lu\n",((Task*)fHeap.PeekMin()->GetEnclosingObject())->fTaskName, (UInt32) this, fHeap.CurrentHeapSize(), (UInt32) fHeap.PeekMin(), (UInt32) fHeap.PeekMin()->GetEnclosingObject());
+            if (TASK_DEBUG) sss_printf("TaskThread::WaitForTask found timer-task=%s thread %lu fHeap.CurrentHeapSize(%lu) taskElem = %lu enclose=%lu\n",((Task*)fHeap.PeekMin()->GetEnclosingObject())->fTaskName, (UInt32) this, fHeap.CurrentHeapSize(), (UInt32) fHeap.PeekMin(), (UInt32) fHeap.PeekMin()->GetEnclosingObject());
             return (Task*)fHeap.ExtractMin()->GetEnclosingObject();
         }
     
-        //if there is an element waiting for a timeout, figure out how long we should wait.
         SInt64 theTimeout = 0;
         if (fHeap.PeekMin() != NULL)
             theTimeout = fHeap.PeekMin()->GetValue() - theCurrentTime;
         Assert(theTimeout >= 0);
-        
-        //
-        // Make sure we can't go to sleep for some ridiculously short
-        // period of time
-        // Do not allow a timeout below 10 ms without first verifying reliable udp 1-2mbit live streams. 
-        // Test with streamingserver.xml pref reliablUDP printfs enabled and look for packet loss and check client for  buffer ahead recovery.
 	if (theTimeout < 10) 
            theTimeout = 10;
             
-        //wait...
         OSQueueElem* theElem = fTaskQueue.DeQueueBlocking(this, (SInt32) theTimeout);
         if (theElem != NULL)
         {    
-            if (TASK_DEBUG) qtss_printf("TaskThread::WaitForTask found signal-task=%s thread %lu fTaskQueue.GetLength(%lu) taskElem = %lu enclose=%lu\n", ((Task*)theElem->GetEnclosingObject())->fTaskName,  (UInt32) this, fTaskQueue.GetQueue()->GetLength(), (UInt32)  theElem,  (UInt32)theElem->GetEnclosingObject() );
+            if (TASK_DEBUG) sss_printf("TaskThread::WaitForTask found signal-task=%s thread %lu fTaskQueue.GetLength(%lu) taskElem = %lu enclose=%lu\n", ((Task*)theElem->GetEnclosingObject())->fTaskName,  (UInt32) this, fTaskQueue.GetQueue()->GetLength(), (UInt32)  theElem,  (UInt32)theElem->GetEnclosingObject() );
             return (Task*)theElem->GetEnclosingObject();
         }
 
-        //
-        // If we are supposed to stop, return NULL, which signals the caller to stop
         if (OSThread::GetCurrent()->IsStopRequested())
             return NULL;
     }   
@@ -279,17 +255,15 @@ Bool16 TaskThreadPool::AddThreads(UInt32 numToAdd)
 
 void TaskThreadPool::RemoveThreads()
 {
-    //Tell all the threads to stop
+    //stop all threads
     for (UInt32 x = 0; x < sNumTaskThreads; x++)
         sTaskThreadArray[x]->SendStopRequest();
 
-    //Because any (or all) threads may be blocked on the queue, cycle through
-    //all the threads, signalling each one
+    //because threads may be blocked on the queue, cycle through all the threads, signalling each one
     for (UInt32 y = 0; y < sNumTaskThreads; y++)
         sTaskThreadArray[y]->fTaskQueue.GetCond()->Signal();
     
-    //Ok, now wait for the selected threads to terminate, deleting them and removing
-    //them from the queue.
+    //wait for the selected threads to terminate, deleting them from the queue.
     for (UInt32 z = 0; z < sNumTaskThreads; z++)
         delete sTaskThreadArray[z];
     
