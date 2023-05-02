@@ -1,27 +1,23 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+The role is to perform RTSP request authentication, which consists of the following steps:
+
+Find the access file path
+access_file = self.get_access_file(username)
+This function returns the path to the access file based on the username passed in. 
+This access file is used to store the username and password, and can be a normal text file.
+
+Create/find the access checker object
+access_checker = self.get_access_checker(access_file)
+This function returns the corresponding access checker object based on the access file path. 
+The access checker object is used to verify that the username and password in the RTSP request are correct. 
+If the access file does not exist, a new access checker object will be created.
+
+Verifying the username and password in the request
+if not access_checker.check(username, password).
+    return False
+This code will call the check method of the access checker object to verify that the username and password in the RTSP request are correct. 
+If they are not correct, False will be returned. 
+*/
 /*
     File:       QTSSAccessModule.cpp
 
@@ -259,7 +255,6 @@ QTSS_Error RereadPrefs()
 {
     OSMutexLocker locker(sUserMutex);
     
-    //
     // Use the standard GetAttribute routine to retrieve the correct values for our preferences
     //QTSSModuleUtils::GetAttribute(sPrefs, MODPREFIX_"enabled",    qtssAttrDataTypeBool16,
     //                      &sAuthenticationEnabled, &sDefaultAuthenticationEnabled, sizeof(sAuthenticationEnabled));
