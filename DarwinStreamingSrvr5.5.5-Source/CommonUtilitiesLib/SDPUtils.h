@@ -92,8 +92,8 @@ public:
 	ResizeableStringFormatter fSDPMediaHeaders;
 	StrPtrLen fSessionHeaders;
 	StrPtrLen fMediaHeaders;
-	static char sSessionOrderedLines[];// = "vosiuepcbtrzka"; 
-	static char sessionSingleLines[];//  = "vosiuepcbzk";   
+	static char sSessionOrderedLines[];
+	static char sessionSingleLines[];
 	static StrPtrLen sEOL;
     static StrPtrLen sMaxBandwidthTag;
 };
