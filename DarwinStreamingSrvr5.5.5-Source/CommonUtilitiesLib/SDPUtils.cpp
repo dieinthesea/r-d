@@ -1,28 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-
 #include "SDPUtils.h"
 
 #include "OS.h"
@@ -124,21 +99,20 @@ void SDPContainer::Parse()
 	
 	while ( sdpParser.GetDataRemaining() != 0 )
 	{
-		foundLine = sdpParser.GetThruEOL(&line);  // Read each line  
+		foundLine = sdpParser.GetThruEOL(&line);  
 		if (!foundLine) 
 		{ 
-		   //qtss_printf("SDPContainer::Parse  No Lines found sdpParser.GetDataRemaining()=%lu\n",sdpParser.GetDataRemaining());
 		   break;
 		}
         StringParser lineParser(&line);
 
-        lineParser.ConsumeWhitespace();//skip over leading whitespace
+        lineParser.ConsumeWhitespace();
         if (lineParser.GetDataRemaining() == 0) // must be an empty line
             continue;
 
         char firstChar = lineParser.PeekFast();
         if (firstChar == '\0')
-            continue; //skip over blank lines
+            continue; 
         
         fFieldStr[firstChar] = firstChar;
         switch (firstChar)
@@ -160,13 +134,13 @@ void SDPContainer::Parse()
 		lineParser.ConsumeUntil(&fieldName, nameValueSeparator);
 		if ((fieldName.Len != 1) || (::strchr(validChars, fieldName.Ptr[0]) == NULL))
 		{
-			valid = false; // line doesn't begin with one of the valid characters followed by an "="
+			valid = false; 
 			break;
 		}
 		
 		if (!lineParser.Expect(nameValueSeparator))
 		{
-			valid = false; // line doesn't have the "=" after the first char
+			valid = false; 
 			break;
 		}
 		
@@ -174,7 +148,7 @@ void SDPContainer::Parse()
 		
 		if (space.Len != 0)
 		{
-			valid = false; // line has whitespace after the "=" 
+			valid = false; 
 			break;
 		}
 		AddHeaderLine(&line);
@@ -243,8 +217,8 @@ void  SDPContainer::PrintAllLines()
 }
 
 
-char SDPLineSorter::sSessionOrderedLines[] = "vosiuepcbtrzka"; // chars are order dependent: declared by rfc 2327
-char SDPLineSorter::sessionSingleLines[]  = "vosiuepcbzk";    // return only 1 of each of these session field types
+char SDPLineSorter::sSessionOrderedLines[] = "vosiuepcbtrzka"; 
+char SDPLineSorter::sessionSingleLines[]  = "vosiuepcbzk";   
 StrPtrLen  SDPLineSorter::sEOL("\r\n");
 StrPtrLen  SDPLineSorter::sMaxBandwidthTag("b=AS:");
 
@@ -269,7 +243,7 @@ SDPLineSorter::SDPLineSorter(SDPContainer *rawSDPContainerPtr, Float32 adjustMed
         {               
             foundLine = sdpParser.GetThruEOL(&sdpLine);
             if (!foundLine)
-            {   //qtss_printf("SDPLineSorter::SDPLineSorter no line found\n");
+            {  
                 break;
             }  
             
@@ -304,7 +278,6 @@ SDPLineSorter::SDPLineSorter(SDPContainer *rawSDPContainerPtr, Float32 adjustMed
 	for (SInt16 sessionLineIndex = 0; sessionLineIndex < fSessionLineCount; sessionLineIndex++)
 		fSessionSDPContainer.AddHeaderLine( (StrPtrLen *) rawSDPContainerPtr->GetLine(sessionLineIndex));
 
-	//qtss_printf("\nSession raw Lines:\n"); fSessionSDPContainer.PrintAllLines();
 
 	SInt16 numHeaderTypes = sizeof(SDPLineSorter::sSessionOrderedLines) -1;
 
@@ -317,8 +290,8 @@ SDPLineSorter::SDPLineSorter(SDPContainer *rawSDPContainerPtr, Float32 adjustMed
 			fSDPSessionHeaders.Put(*theHeaderLinePtr);
 			fSDPSessionHeaders.Put(SDPLineSorter::sEOL);
 
-			if (NULL != ::strchr(sessionSingleLines, theHeaderLinePtr->Ptr[0] ) ) // allow 1 of this type: use first found
-				break; // move on to next line type
+			if (NULL != ::strchr(sessionSingleLines, theHeaderLinePtr->Ptr[0] ) ) 
+				break; 
 
 			lineIndex = fSessionSDPContainer.FindHeaderLineType(SDPLineSorter::sSessionOrderedLines[fieldTypeIndex], lineIndex + 1);
 			theHeaderLinePtr = fSessionSDPContainer.GetLine(lineIndex);
