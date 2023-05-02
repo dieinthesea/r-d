@@ -1,38 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       StrPtrLen.cpp
-
-    Contains:   Implementation of class defined in StrPtrLen.h.  
-                    
-
-    
-
-*/
-
-
 #include <ctype.h>
 #include "StrPtrLen.h"
 #include "MyAssert.h"
@@ -59,8 +24,8 @@ UInt8       StrPtrLen::sCaseInsensitiveMask[] =
 
 UInt8 StrPtrLen::sNonPrintChars[] =
 {
-    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, //0-9     // stop
-    0, 1, 1, 0, 1, 1, 1, 1, 1, 1, //10-19    //'\r' & '\n' are not stop conditions
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, //0-9    
+    0, 1, 1, 0, 1, 1, 1, 1, 1, 1, //10-19    
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //20-29
     1, 1, 0, 0, 0, 0, 0, 0, 0, 0, //30-39   
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //40-49
@@ -89,8 +54,7 @@ UInt8 StrPtrLen::sNonPrintChars[] =
 
 char* StrPtrLen::GetAsCString() const
 {
-    // convert to a "NEW'd" zero terminated char array
-    // caler is reponsible for the newly allocated memory
+  
     char *theString = NEW char[Len+1];
     
     if ( Ptr && Len > 0 )
@@ -134,7 +98,6 @@ Bool16 StrPtrLen::Equal(const char* compare) const
 
 Bool16 StrPtrLen::NumEqualIgnoreCase(const char* compare, const UInt32 len) const
 {
-    // compare thru the first "len: bytes
     Assert(compare != NULL);
     
     if (len <= Len)
@@ -162,9 +125,6 @@ Bool16 StrPtrLen::EqualIgnoreCase(const char* compare, const UInt32 len) const
 
 char *StrPtrLen::FindStringCase(char *queryCharStr, StrPtrLen *resultStr, Bool16 caseSensitive) const
 {
-    // Be careful about exiting this method from the middle. This routine deletes allocated memory at the end.
-    // 
-
     if (resultStr)
         resultStr->Set(NULL,0);
 
@@ -179,10 +139,10 @@ char *StrPtrLen::FindStringCase(char *queryCharStr, StrPtrLen *resultStr, Bool16
     char *resultChar = NULL;
     char lastSourceChar = Ptr[Len -1];
     
-    if (lastSourceChar != 0) // need to modify for termination. 
-    {   editSource = NEW char[Len + 1]; // Ptr could be a static string so make a copy
+    if (lastSourceChar != 0) 
+    {   editSource = NEW char[Len + 1]; 
         ::memcpy( editSource, Ptr, Len );
-        editSource[Len] = 0; // this won't work on static strings so we are modifing a new string here
+        editSource[Len] = 0; 
     }
 
     char *queryString = queryCharStr;       
@@ -191,7 +151,7 @@ char *StrPtrLen::FindStringCase(char *queryCharStr, StrPtrLen *resultStr, Bool16
     char *sourceString = Ptr;
     UInt32 foundLen = 0;
     
-    if (editSource != NULL) // a copy of the source ptr and len 0 terminated
+    if (editSource != NULL) 
         sourceString = editSource;
     
     if (!caseSensitive)
@@ -210,10 +170,10 @@ char *StrPtrLen::FindStringCase(char *queryCharStr, StrPtrLen *resultStr, Bool16
     {   resultChar = ::strstr(sourceString,queryString);        
     }
     
-    if (resultChar != NULL) // get the start offset
+    if (resultChar != NULL) 
     {   foundLen = resultChar - sourceString;
-        resultChar = Ptr + foundLen;  // return a pointer in the source buffer
-        if (resultChar > (Ptr + Len)) // make sure it is in the buffer
+        resultChar = Ptr + foundLen;  
+        if (resultChar > (Ptr + Len)) 
             resultChar = NULL;
     }
     
@@ -236,7 +196,7 @@ UInt32 StrPtrLen::RemoveWhitespace()
     if (Ptr == NULL || Len == 0)
         return 0;
 
-    char *EndPtr = Ptr + Len; // one past last char
+    char *EndPtr = Ptr + Len; 
     char *destPtr = Ptr;
     char *srcPtr = Ptr;
     
@@ -263,7 +223,7 @@ UInt32 StrPtrLen::TrimLeadingWhitespace()
     if (Ptr == NULL || Len == 0)
         return 0;
 
-    char *EndPtr = Ptr + Len; //one past last char
+    char *EndPtr = Ptr + Len; 
 
     while (Ptr < EndPtr)
     {
@@ -282,7 +242,7 @@ UInt32 StrPtrLen::TrimTrailingWhitespace()
     if (Ptr == NULL || Len == 0)
         return 0;
 
-    char *theCharPtr = Ptr + (Len - 1); // last char
+    char *theCharPtr = Ptr + (Len - 1); 
 
     while (theCharPtr >= Ptr)
     {
@@ -538,14 +498,14 @@ Bool16  StrPtrLen::Test()
         return false;
         
     query.Set("47");
-    if (query.Equal(partialStaticSource.FindString(query))) // success = !equal because the char str is longer than len
+    if (query.Equal(partialStaticSource.FindString(query))) 
         return false;
     
-    if (query.FindString(partialStaticSource.FindString(query))) // success = !found because the 0 term src is not in query
+    if (query.FindString(partialStaticSource.FindString(query))) /
         return false;
 
     partialStaticSource.FindString(query,&outResultStr);
-    if (!outResultStr.Equal(query)) // success =found the result Ptr and Len is the same as the query
+    if (!outResultStr.Equal(query))
         return false;
 
     return true;
