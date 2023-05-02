@@ -1,27 +1,11 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+A class called ElementNode is defined which is used to represent nodes in an XML file.
+It contains a number of member variables and member functions for setting and obtaining properties of nodes,
+processing XML queries, responding to XML requests, etc.
+Among other things, the ElementNode class also inherits from the OSRefTable class, which is used to maintain reference relationships between nodes.
+In addition, the code defines a class called AdminClass, 
+which is a subclass of the ElementNode class and is used to handle XML requests related to administrators.
+*/
 /*
     File:       AdminElements.h
 
@@ -61,6 +45,10 @@ void ElementNode_RemovePtr(void *ptr, char * src);
 SInt32 ElementNode_CountPtrs();
 void ElementNode_ShowPtrs();
 
+//The ClientSession class is used to represent information about a client session, 
+//including session ID, IP address, URL buffer, bit rate, packet loss rate, number of bytes sent and connection time.
+
+
 class ClientSession {
     public:
         ClientSession(void) : fRTSPSessionID(0),  fBitrate(0), fPacketLossPercent(0), fBytesSent(0),fTimeConnected(0) {};
@@ -75,6 +63,9 @@ class ClientSession {
 
 };
 
+//The ElementNode class represents an XML node, including information 
+//such as node name, node type, attribute name, attribute value, access rights, 
+//and provides methods to query, modify, add or delete nodes or attributes.
 
 class ElementNode 
 {
@@ -285,6 +276,9 @@ class ElementNode
         
 
 };
+
+//The AdminClass class, which inherits from the ElementNode class, 
+//is used to represent an administrator node and provides methods for managing server-related settings.
 
 class AdminClass : public ElementNode
 {
