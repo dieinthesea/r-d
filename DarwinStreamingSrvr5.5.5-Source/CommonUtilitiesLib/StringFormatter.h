@@ -1,38 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       StringFormatter.h
-
-    Contains:   Utility class for formatting text to a buffer.
-                Construct object with a buffer, then call one
-                of many Put methods to write into that buffer.
-                    
-    
-
-*/
-
 #ifndef __STRINGFORMATTER_H__
 #define __STRINGFORMATTER_H__
 
@@ -40,13 +5,11 @@
 #include "StrPtrLen.h"
 #include "MyAssert.h"
 
-
-//Use a class like the ResizeableStringFormatter if you want a buffer that will dynamically grow
 class StringFormatter
 {
     public:
         
-        //pass in a buffer and length for writing
+        
         StringFormatter(char *buffer, UInt32 length) :  fCurrentPut(buffer), 
                                                         fStartPut(buffer),
                                                         fEndPut(buffer + length),
@@ -63,13 +26,9 @@ class StringFormatter
                                                     fEndPut = buffer + length;
                                                     fBytesWritten= 0;
                                                 }
-                                            
-        //"erases" all data in the output stream save this number
         void        Reset(UInt32 inNumBytesToLeave = 0)
             { fCurrentPut = fStartPut + inNumBytesToLeave; }
 
-        //Object does no bounds checking on the buffer. That is your responsibility!
-        //Put truncates to the buffer size
         void        Put(const SInt32 num);
         void        Put(char* buffer, UInt32 bufferSize);
         void        Put(char* str)      { Put(str, strlen(str)); }
@@ -84,9 +43,7 @@ class StringFormatter
         inline UInt32       GetTotalBufferSize();
         char*               GetCurrentPtr()     { return fCurrentPut; }
         char*               GetBufPtr()         { return fStartPut; }
-        
-        // Counts total bytes that have been written to this buffer (increments
-        // even when the buffer gets reset)
+
         void                ResetBytesWritten() { fBytesWritten = 0; }
         UInt32              GetBytesWritten()   { return fBytesWritten; }
         
@@ -95,16 +52,12 @@ class StringFormatter
 
     protected:
 
-        //If you fill up the StringFormatter buffer, this function will get called. By
-        //default, no action is taken. But derived objects can clear out the data and reset the buffer
-        //Use the ResizeableStringFormatter if you want a buffer that will dynamically grow
         virtual void    BufferIsFull(char* /*inBuffer*/, UInt32 /*inBufferLen*/) { }
 
         char*       fCurrentPut;
         char*       fStartPut;
         char*       fEndPut;
-        
-        // A way of keeping count of how many bytes have been written total
+
         UInt32 fBytesWritten;
 
         static char*    sEOL;
@@ -149,5 +102,5 @@ inline void StringFormatter::PutFilePath(char *inPath, char *inFileName)
    PutFilePath(&pathStr,&fileStr);
 }
 
-#endif // __STRINGFORMATTER_H__
+#endif 
 
