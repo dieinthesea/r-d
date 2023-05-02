@@ -1,27 +1,13 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+This file is primarily used to implement functions for reading user and group information files, 
+creating and deleting user profiles, and checking whether a user has permission to access certain resources.
+The core of this file is the AccessChecker class, which maintains an array of user profiles,
+with each array element representing a user's configuration information.
+The DeleteProfilesAndRealm() function is used to delete all user profiles and the
+UpdateFilePaths() function is used to update the paths of user and group information files.
+and the UpdateUserProfiles() function is used to read the user and group information files and create user profiles.
+This file also contains a number of string handling functions such as StringParser and StrPtrLen to parse the contents of the file.
+*/
  /*
     File:       AccessChecker.cpp
 
@@ -98,11 +84,7 @@ void AccessChecker::UpdateFilePaths(const char* inUsersFilePath, const char* inG
 }
 
 // Function to delete memory allocated for all the profiles, and the authRealm
-// For each profile, memory is allocated for
-//                                  username
-//                                  cryptPassword
-//                                  digestPassword
-//                                  each group that the user belongs to (array of group names)
+// For each profile, memory is allocated for username, cryptPassword, digestPassword and each group that the user belongs to (array of group names)
 // All of the above are deleted
 void AccessChecker::DeleteProfilesAndRealm()
 {
@@ -169,8 +151,7 @@ void AccessChecker::DeleteProfilesAndRealm()
 
 // Memory is allocated for each username record found in the users file
 // Memory is also allocated for each group name found in the groups file per user
-// All this memory must be deleted if the profiles are deleted, before parsing
-// the file again
+// All this memory must be deleted if the profiles are deleted, before parsing the file again
 UInt32 AccessChecker::UpdateUserProfiles() {
     
     UInt32 index = 0;
