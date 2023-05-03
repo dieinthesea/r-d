@@ -1,37 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       UDPDemuxer.h
-
-    Contains:   Provides a "Listener" socket for UDP. Blocks on a local IP & port,
-                waiting for data. When it gets data, it passes it off to a UDPDemuxerTask
-                object depending on where it came from.
-
-    
-*/
-
 #ifndef __UDPDEMUXER_H__
 #define __UDPDEMUXER_H__
 
@@ -41,10 +7,6 @@
 
 class Task;
 class UDPDemuxerKey;
-
-//IMPLEMENTATION ONLY:
-//HASH TABLE CLASSES USED ONLY IN IMPLEMENTATION
-
 
 class UDPDemuxerUtils
 {
@@ -95,7 +57,6 @@ class UDPDemuxerKey
 {
     private:
 
-        //CONSTRUCTOR / DESTRUCTOR:
         UDPDemuxerKey(UInt32 inRemoteAddr, UInt16 inRemotePort)
             :   fRemoteAddr(inRemoteAddr), fRemotePort(inRemotePort)
                 { fHashValue = UDPDemuxerUtils::ComputeHashValue(inRemoteAddr, inRemotePort); }
@@ -104,12 +65,10 @@ class UDPDemuxerKey
         
         
     private:
-
-        //PRIVATE ACCESSORS:    
+  
         UInt32      GetHashKey()        { return fHashValue; }
 
-        //these functions are only used by the hash table itself. This constructor
-        //will break the "Set" functions.
+        //these functions are only used by the hash table itself. This constructor will break the "Set" functions.
         UDPDemuxerKey(UDPDemuxerTask *elem) :   fRemoteAddr(elem->fRemoteAddr),
                                                 fRemotePort(elem->fRemotePort), 
                                                 fHashValue(elem->fHashValue) {}
@@ -130,7 +89,6 @@ class UDPDemuxerKey
         friend class UDPDemuxer;
 };
 
-//CLASSES USED ONLY IN IMPLEMENTATION
 typedef OSHashTable<UDPDemuxerTask, UDPDemuxerKey> UDPDemuxerHashTable;
 
 class UDPDemuxer
@@ -141,18 +99,12 @@ class UDPDemuxer
         ~UDPDemuxer() {}
 
         //These functions grab the mutex and are therefore premptive safe
-        
-        // Return values: OS_NoErr, or EPERM if there is already a task registered
-        // with this address combination
         OS_Error RegisterTask(UInt32 inRemoteAddr, UInt16 inRemotePort,
                                         UDPDemuxerTask *inTaskP);
 
-        // Return values: OS_NoErr, or EPERM if this task / address combination
-        // is not registered
         OS_Error UnregisterTask(UInt32 inRemoteAddr, UInt16 inRemotePort,
                                         UDPDemuxerTask *inTaskP);
         
-        //Assumes that parent has grabbed the mutex!
         UDPDemuxerTask* GetTask(UInt32 inRemoteAddr, UInt16 inRemotePort);
 
         Bool16  AddrInMap(UInt32 inRemoteAddr, UInt16 inRemotePort)
@@ -165,12 +117,12 @@ class UDPDemuxer
     
         enum
         {
-            kMaxHashTableSize = 2747//is this prime? it should be... //UInt32
+            kMaxHashTableSize = 2747
         };
         UDPDemuxerHashTable fHashTable;
-        OSMutex             fMutex;//this data structure is shared!
+        OSMutex             fMutex;
 };
 
-#endif // __UDPDEMUXER_H__
+#endif 
 
 
