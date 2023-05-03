@@ -42,7 +42,7 @@ int select_modwatch(struct eventreq *req, int which)
     return ::WSAAsyncSelect(req->er_handle, sMsgWindow, theMsg, theEvent);
 }
 
-int select_waitevent(struct eventreq *req, void* /*onlyForMacOSX*/)
+int select_waitevent(struct eventreq *req, void* )
 {
     if (sMsgWindow == NULL)
     {
@@ -92,7 +92,7 @@ int select_waitevent(struct eventreq *req, void* /*onlyForMacOSX*/)
         UInt32 theSelectErr = WSAGETSELECTERROR(theMessage.lParam);
         UInt32 theEvent = WSAGETSELECTEVENT(theMessage.lParam);
         
-        req->er_handle = theMessage.wParam; 
+        req->er_handle = theMessage.wParam; //socket
         req->er_eventbits = EV_RE;          
 
         req->er_data = (void*)(theMessage.message);
