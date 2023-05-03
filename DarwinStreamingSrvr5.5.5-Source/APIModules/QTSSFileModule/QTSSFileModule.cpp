@@ -1,27 +1,5 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+*/
 /*
     File:       QTSSFileModule.cpp
 
@@ -176,19 +154,22 @@ static void       DeleteFileSession(FileSession* inFileSession);
 static UInt32   WriteSDPHeader(FILE* sdpFile, iovec *theSDPVec, SInt16 *ioVectorIndex, StrPtrLen *sdpHeader);
 static void     BuildPrefBasedHeaders();
 
-QTSS_Error QTSSFileModule_Main(void* inPrivateArgs)
+QTSS_Error QTSSFileModule_Main(void* inPrivateArgs)//used to start the QTSS file module.
 {
-    return _stublibrary_main(inPrivateArgs, QTSSFileModuleDispatch);
+    return _stublibrary_main(inPrivateArgs, QTSSFileModuleDispatch);//to start the QTSS Stream Server module.
 }
 
-inline UInt16 GetPacketSequenceNumber(void * packetDataPtr)
+inline UInt16 GetPacketSequenceNumber(void * packetDataPtr)//get the sequence number from an RTP packe
 {
+    //Convert the pointer to the RTP packet to a UInt16 type pointer, 
+    //then get the sequence number from the converted pointer,
+    //and finally convert the network byte order to the host byte order with the ntohs function.
     return ntohs( ((UInt16*)packetDataPtr)[1]);
 }
 
-inline UInt16 GetLastPacketSeqNum(QTSS_Object stream)
+inline UInt16 GetLastPacketSeqNum(QTSS_Object stream)//Gets the sequence number of the last packet of the stream object.
 {
-
+	
     UInt16 lastSeqNum = 0;
     UInt32  theLen = sizeof(lastSeqNum);
     (void) QTSS_GetValue(stream, sRTPStreamLastPacketSeqNumAttrID, 0, (void*)&lastSeqNum, &theLen);
@@ -197,7 +178,7 @@ inline UInt16 GetLastPacketSeqNum(QTSS_Object stream)
 }
 
 
-inline SInt32 GetLastSentSeqNumber(QTSS_Object stream)
+inline SInt32 GetLastSentSeqNumber(QTSS_Object stream)//Get the sequence number of the last packet sent by the stream object
 {
     UInt16 lastSeqNum = 0;
     UInt32  theLen = sizeof(lastSeqNum);
@@ -209,22 +190,27 @@ inline SInt32 GetLastSentSeqNumber(QTSS_Object stream)
     return (SInt32)lastSeqNum; // return UInt16 seq num value or -1.
 } 
 
+//Set the sequence number of the RTP packet
 inline void SetPacketSequenceNumber(UInt16 newSequenceNumber, void * packetDataPtr)
 {
     ((UInt16*)packetDataPtr)[1] = htons(newSequenceNumber);
 }
 
-
+//Get the timestamp from an RTP packet.
 inline UInt32 GetPacketTimeStamp(void * packetDataPtr)
 {
-    return ntohl( ((UInt32*)packetDataPtr)[1]);
+    return ntohl( ((UInt32*)packetDataPtr)[1]);//to convert the network byte order to host byte order.
 }
 
+
+//Set the timestamp of an RTP packet.
 inline void SetPacketTimeStamp(UInt32 newTimeStamp, void * packetDataPtr)
 {
-    ((UInt32*)packetDataPtr)[1] = htonl(newTimeStamp);
+    ((UInt32*)packetDataPtr)[1] = htonl(newTimeStamp);//to convert the host byte order to network byte order.
 }
 
+//Calculate the timestamp of the pause time.
+//The function takes three parameters: the timescale, the total pause time and the current timestamp.
 inline UInt32 CalculatePauseTimeStamp(UInt32 timescale, SInt64 totalPauseTime, UInt32 currentTimeStamp)
 {
     SInt64 pauseTime = (SInt64) ( (Float64) timescale * ( ( (Float64) totalPauseTime) / 1000.0));     
@@ -233,6 +219,8 @@ inline UInt32 CalculatePauseTimeStamp(UInt32 timescale, SInt64 totalPauseTime, U
     return pauseTimeStamp;
 }
 
+//the timestamp is adjusted to take into account the pause time based on the given timestamp and file session information. 
+//If the file session requires a pause time adjustment, the adjusted timestamp is returned
 UInt32 SetPausetimeTimeStamp(FileSession *fileSessionPtr, QTSS_Object theRTPStream, UInt32 currentTimeStamp)
 { 
     if (false == fileSessionPtr->fAdjustPauseTime || fileSessionPtr->fTotalPauseTime == 0)
@@ -251,7 +239,7 @@ UInt32 SetPausetimeTimeStamp(FileSession *fileSessionPtr, QTSS_Object theRTPStre
     return pauseTimeStamp;
 }
 
-
+//Write SDP header to file or iovec buffer
 UInt32 WriteSDPHeader(FILE* sdpFile, iovec *theSDPVec, SInt16 *ioVectorIndex, StrPtrLen *sdpHeader)
 {
 
@@ -273,7 +261,7 @@ UInt32 WriteSDPHeader(FILE* sdpFile, iovec *theSDPVec, SInt16 *ioVectorIndex, St
 }
 
 
-
+//A module dispatch function that calls the corresponding handler function according to the different role parameters
 QTSS_Error  QTSSFileModuleDispatch(QTSS_Role inRole, QTSS_RoleParamPtr inParamBlock)
 {
     switch (inRole)
@@ -294,6 +282,9 @@ QTSS_Error  QTSSFileModuleDispatch(QTSS_Role inRole, QTSS_RoleParamPtr inParamBl
     return QTSS_NoErr;
 }
 
+//Implements the basic registration and initialisation process for a QTSS module, 
+//including registering roles, adding static properties, 
+//setting the module name and telling the server the RTSP methods handled by the module.
 QTSS_Error Register(QTSS_Register_Params* inParams)
 {
     // Register for roles
@@ -376,6 +367,8 @@ QTSS_Error Initialize(QTSS_Initialize_Params* inParams)
     return QTSS_NoErr;
 }
 
+//Constructing URL and Email headers in the SDP protocol
+//The resulting URL and email headers are stored in the global variables sURLHeader and sEmailHeader.
 void BuildPrefBasedHeaders()
 {
     //build the sdp that looks like: \r\ne=http://streaming.apple.com\r\ne=qts@apple.com.
