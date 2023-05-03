@@ -437,6 +437,10 @@ void BuildPrefBasedHeaders()
     adminEmail.Delete();
 }
 
+//Read the server's configuration file, 
+//including the stream control probe interval, 
+//maximum allowed speed, file cache, etc., 
+//and save the read configuration information to a global variable for subsequent use.
 QTSS_Error RereadPrefs()
 {
     
@@ -504,6 +508,8 @@ QTSS_Error RereadPrefs()
     return QTSS_NoErr;
 }
 
+//Process RTSP requests, calling different processing functions depending on the request method,
+//such as DoDescribe(), DoSetup(), DoPlay(), etc.
 QTSS_Error ProcessRTSPRequest(QTSS_StandardRTSP_Params* inParamBlock)
 {
     QTSS_RTSPMethod* theMethod = NULL;
@@ -555,6 +561,7 @@ QTSS_Error ProcessRTSPRequest(QTSS_StandardRTSP_Params* inParamBlock)
     return QTSS_NoErr;
 }
 
+//determine if the requested path is an SDP file
 Bool16 isSDP(QTSS_StandardRTSP_Params* inParamBlock)
 {
 	Bool16 sdpSuffix = false;
@@ -576,8 +583,17 @@ Bool16 isSDP(QTSS_StandardRTSP_Params* inParamBlock)
 	return sdpSuffix;
 }
 
+//A function that handles RTSP requests. 
+//Its role is to get the SDP description information in the request, 
+//generate an SDP description and return it to the client.
 QTSS_Error DoDescribe(QTSS_StandardRTSP_Params* inParamBlock)
 {
+    //The first task of the function is to check if the request contains SDP description information. 
+    //If the request contains SDP description information, 
+    //then the function returns an error response. 
+    //Otherwise, the function will try to fetch the file associated with the request and check if the file is already associated with the client. 
+    //If the file is already associated, the function will check if the request is associated with the file. 
+    //If the request does not match the file, the function will delete the old file and create a new one.
     if (isSDP(inParamBlock))
     {
         StrPtrLen pathStr;
@@ -618,19 +634,15 @@ QTSS_Error DoDescribe(QTSS_StandardRTSP_Params* inParamBlock)
     
     if ( theFile != NULL )  
     {
-        //
         // There is already a file for this session. This can happen if there are multiple DESCRIBES,
         // or a DESCRIBE has been issued with a Session ID, or some such thing.
         StrPtrLen   moviePath( theFile->fFile.GetMoviePath() );
-        
-        //
-        // This describe is for a different file. Delete the old FileSession.
+      
         if ( !requestPath.Equal( moviePath ) )
         {
             DeleteFileSession(theFile);
             theFile = NULL;
             
-            // NULL out the attribute value, just in case.
             (void)QTSS_SetValue(inParamBlock->inClientSession, sFileSessionAttr, 0, &theFile, sizeof(theFile));
         }
     }
@@ -730,6 +742,10 @@ QTSS_Error DoDescribe(QTSS_StandardRTSP_Params* inParamBlock)
         (void)QTSS_GetValuePtr(inParamBlock->inRTSPSession, qtssRTSPSesLocalAddrStr, 0, (void**)&ipStr.Ptr, &ipStr.Len);
 
 
+	    
+//Creates an SDP description.
+//If SDP files are enabled, the function will check if an SDP file exists in the folder and return it as a description.
+//Otherwise, the function will generate a new SDP description.
 //      
 // *** The order of sdp headers is specified and required by rfc 2327
 //
@@ -888,6 +904,7 @@ QTSS_Error DoDescribe(QTSS_StandardRTSP_Params* inParamBlock)
     return QTSS_NoErr;
 }
 
+//Create a QTRTP file and store the pointer of the file session in the outFile parameter
 QTSS_Error CreateQTRTPFile(QTSS_StandardRTSP_Params* inParamBlock, char* inPath, FileSession** outFile)
 {   
     *outFile = NEW FileSession();
@@ -925,7 +942,10 @@ QTSS_Error CreateQTRTPFile(QTSS_StandardRTSP_Params* inParamBlock, char* inPath,
     return QTSS_NoErr;
 }
 
-
+//The setup operation during the processing of an RTSP request contains operations
+//such as extracting the payload information from the SDP file, 
+//creating a new RTP stream, setting parameters such as payload type, payload name, timescale, etc., 
+//and allocating cache space.
 QTSS_Error DoSetup(QTSS_StandardRTSP_Params* inParamBlock)
 {
 
@@ -1101,7 +1121,8 @@ QTSS_Error DoSetup(QTSS_StandardRTSP_Params* inParamBlock)
 }
 
 
-
+//is mainly for setting up cache space, 
+//including allocating shared cache space and private cache space, and counting the number of caches
 QTSS_Error SetupCacheBuffers(QTSS_StandardRTSP_Params* inParamBlock, FileSession** theFile)
 {
     
@@ -1131,6 +1152,15 @@ QTSS_Error SetupCacheBuffers(QTSS_StandardRTSP_Params* inParamBlock, FileSession
 
 }
 
+//implements the initialisation and registration process of an SSS module, 
+//which involves a number of operations such as setting cache space and allocating shared and private cache space.
+
+//Specifically, the function will first determine if an SDP file exists and, 
+//if so, send an error response. 
+//Next, the function will fetch the file session and set the cache space, 
+//and set the default quality level. The function then parses the request headers 
+//and sets the relevant parameters, including backup time, speed, playback time, etc.
+//Finally, the function adds some response headers and sends the response.
 QTSS_Error DoPlay(QTSS_StandardRTSP_Params* inParamBlock)
 {
     QTRTPFile::ErrorCode qtFileErr = QTRTPFile::errNoError;
@@ -1422,6 +1452,7 @@ QTSS_Error DoPlay(QTSS_StandardRTSP_Params* inParamBlock)
     return QTSS_NoErr;
 }
 
+//Operations such as setting up cache space and allocating shared and private cache space.
 QTSS_Error SendPackets(QTSS_RTPSendPackets_Params* inParams)
 {
     static const UInt32 kQualityCheckIntervalInMsec = 250;  // v331=v107
@@ -1594,6 +1625,7 @@ QTSS_Error SendPackets(QTSS_RTPSendPackets_Params* inParams)
     return QTSS_NoErr;
 }
 
+//Its function is to destroy a client session
 QTSS_Error DestroySession(QTSS_ClientSessionClosing_Params* inParams)
 {
     FileSession** theFile = NULL;
@@ -1611,6 +1643,7 @@ QTSS_Error DestroySession(QTSS_ClientSessionClosing_Params* inParams)
     return QTSS_NoErr;
 }
 
+//simply deletes the FileSession structure, which uses the delete operator to free the memory of the structure
 void    DeleteFileSession(FileSession* inFileSession)
 {   
     delete inFileSession;
