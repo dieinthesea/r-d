@@ -1,52 +1,3 @@
-/*
- * Copyright (c) 2003 Apple Computer, Inc. All rights reserved.
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- */
-/*
-    File:       mymutex.c
-
-    Contains:   xxx put contents here xxx
-
-    Written by: Greg Vaughan
-
-    Writers:
-
-        (GV)    Greg Vaughan
-        (CNR)   Christopher Ryan
-
-    Change History (most recent first):
-
-         <7>      9/5/00    CNR     Use mach_port_destroy instead of mach_port_deallocate in
-                                    MMDisposeMutex.
-         <6>     7/24/00    GV      changed Carbon to CarbonCore for header include
-         <5>     1/11/00    CNR     Fix for IncrementAtomic/DecrementAtomic return value.
-         <4>      1/6/00    GBV     got rid of libatomic
-         <3>     12/8/99    CNR     Use OSAssert.h
-         <2>    10/27/99    GBV     update for beaker
-
-    To Do:
-*/
-
 #include "mymutex.h"
 #include <stdlib.h>
 #include "SafeStdLib.h"
@@ -173,12 +124,10 @@ void MMGrab(MyMutex* theMutex)
 
         DecrementAtomic(&theMutex->fNumWaiting);
 
-        // we just got control, so reset fCount
-        theMutex->fCount = 0; // gets incremented below...
+        theMutex->fCount = 0;
         theMutex->fHolder = thread;
     }
 
-    // we have control now, so increment the count
     ++theMutex->fCount;
 }
 
@@ -209,7 +158,7 @@ void MMRelease(MyMutex* theMutex)
     if (!--theMutex->fCount) 
     {
         theMutex->fHolder = NULL;
-        theMutex->fMutexLock = 0;   // let someone else deal with it
+        theMutex->fMutexLock = 0;   
         if (theMutex->fNumWaiting > 0)
             MMUnblockThread(theMutex);
     }
