@@ -1,27 +1,21 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+is a QTSS module that implements MP3 streaming media playback. 
+It contains three classes: MP3Session, MP3BroadcasterSession and MP3ClientSession. 
+
+MP3Session is the base class for these three classes and provides a number of public methods and member variables,
+including getting and setting RTSP session objects, stream objects, state values and result values. 
+
+MP3BroadcasterSession is a broadcaster session class that inherits from MP3Session 
+and provides a number of broadcaster-related methods and member variables, 
+such as data buffers, broadcast headers, song names, etc.
+
+MP3ClientSession is a client session class that inherits from MP3Session and provides a number of client-side related methods 
+and member variables, such as requesting information, sending data, whether to block, etc. 
+
+In addition, this code contains a number of helper classes 
+such as MP3SessionRef, MP3SessionRefKey, MP3SessionTable, MP3ClientQueue and MP3BroadcasterQueue 
+to implement session mapping and management.
+*/
  
 /*
     File:       QTSSMP3StreamingModule.h
@@ -75,7 +69,7 @@ enum {
 };
 
 //
-// MP3Session -- This is a base class to hold all the MP3 Session state info.
+// MP3Session --  a base class to hold all the MP3 Session state info.
 // We will subclass it for MP3 Broadcaster sessions and MP3 Client sessions.
 // (See the MP3BroadcasterSession & MP3ClientSession classes defined below.)
 //
@@ -88,9 +82,7 @@ public:
                     
     virtual         ~MP3Session();
     
-    // The IsA() method is a mechanism for subclasses of this class to
-    // identify their type. It is kMP3UndefinedSessionType for this
-    // base class.
+    // The IsA() method is a mechanism for subclasses of this class toidentify their type. It is kMP3UndefinedSessionType for thisbase class.
     
     virtual UInt8   IsA() const;
     
@@ -131,18 +123,14 @@ private:
     UInt32          fSessID;
 };
     
-//
-// MP3BroadcasterSession -- This is a class to hold all the MP3 Broadcaster
-// session-related state info. There is a global queue of these managed by the
-// server. Each instance of this class must have a unique mountpoint name
-// string which clients will use to identify the broadcast stream they are
-// "tuning" into.
-//
+
+// MP3BroadcasterSession -- This is a class to hold all the MP3 Broadcaster session-related state info. 
+// There is a global queue of these managed by the server.
+// Each instance of this class must have a unique mountpoint name string which clients will use to identify the broadcast stream they are "tuning" into.
+
 class MP3BroadcasterSession : public MP3Session
 {
 public:
-
-
     // MP3BroadcasterSession states
 
     enum {
@@ -157,9 +145,8 @@ public:
                     
     virtual         ~MP3BroadcasterSession();
     
-    // The IsA() method is a mechanism for subclasses of the MP3Session class
-    // to identify their type. It is kMP3BroadcasterSessionType for this
-    // subclass.
+    // The IsA() method is a mechanism for subclasses of the MP3Session class to identify their type.
+    //  It is kMP3BroadcasterSessionType for this subclass.
     
     virtual UInt8   IsA() const;
     
@@ -235,15 +222,11 @@ private:
 };
 
 //
-// MP3ClientSession -- This is a class to hold all the MP3 client
-// session-related state info. These class instances are always owned by a
-// instance of the MP3BroadcasterSession class which has a queue of these.
-//
+// MP3ClientSession -- a class to hold all the MP3 client session-related state info.
+// These class instances are always owned by a instance of the MP3BroadcasterSession class which has a queue of these.
 class MP3ClientSession : public MP3Session
 {
 public:
-
-
     // MP3ClientSession states
 
     enum {
@@ -259,8 +242,8 @@ public:
                     
     virtual         ~MP3ClientSession();
     
-    // The IsA() method is a mechanism for subclasses of the MP3Session class
-    // to identify their type. It is kMP3ClientSessionType for this subclass.
+    // The IsA() method is a mechanism for subclasses of the MP3Session class to identify their type. 
+    // It is kMP3ClientSessionType for this subclass.
     
     virtual UInt8   IsA() const;
     
@@ -334,11 +317,9 @@ private:
     QTSS_Object     fQTSSObject;
 };
 
-//
-// MP3SessionRef -- This class is just a wrapper class for handling the
-// mapping of RTSP Session refs to the corresponding MP3 Session class refs.
+// MP3SessionRef -- a wrapper class for handling the mapping of RTSP Session refs to the corresponding MP3 Session class refs.
 // It will be the an element of our hash table in the MP3SessionTable class.
-//
+
 class MP3SessionRef 
 {
 public:
@@ -362,10 +343,8 @@ private:
     friend class MP3SessionTable;
 };
 
-//
-// MP3SessionRefKey -- This class is used to generate hash keys for looking
-// up values in our MP3SessionTable.
-//
+// MP3SessionRefKey -- used to generate hash keys for looking up values in our MP3SessionTable.
+
 class MP3SessionRefKey 
 {
 public:
@@ -394,10 +373,9 @@ private:
 typedef OSHashTable<MP3SessionRef, MP3SessionRefKey> MP3SessRefHashTable;
 typedef OSHashTableIter<MP3SessionRef, MP3SessionRefKey> MP3SessRefHashTableIter;
 
-//
-// MP3SessionTable -- This class provides a way to map RTSP Session references
-// into the corresponding MP3Session class instances if any.
-//
+
+// MP3SessionTable --  provides a way to map RTSP Session references into the corresponding MP3Session class instances if any.
+
 class MP3SessionTable 
 {
 public:
@@ -419,8 +397,8 @@ public:
     // returns true on success or false if it fails.
     Bool16          RegisterSession(MP3Session* session);
     
-    // Given an QTSS_RTSPSessionObject resolve it into a MP3Session class
-    // reference. Returns NULL if there's none in out map.
+    // Given an QTSS_RTSPSessionObject resolve it into a MP3Session class reference. 
+    // Returns NULL if there's none in out map.
     MP3Session*     Resolve(QTSS_RTSPSessionObject rtspSession);
 
     // Attempt to remove a  MP3Session ref from the table's map.
@@ -433,10 +411,10 @@ private:
     OSMutex             fMutex;
 };
 
-//
-// MP3ClientQueue -- This is a class manages a queue of MP3Client objects.
+
+// MP3ClientQueue -- manages a queue of MP3Client objects.
 // Every MP3BroadcasterSession class instance contains one of these objects.
-//
+
 class MP3ClientQueue 
 {
 public:
@@ -466,10 +444,10 @@ private:
     OSQueue         fQueue;
 };
 
-//
-// MP3BroadcasterQueue -- This is a class manages a queue of MP3Broadcaster objects.
+
+// MP3BroadcasterQueue --  manages a queue of MP3Broadcaster objects.
 // There is only one global instance of this class owned by the server.
-//
+
 class MP3BroadcasterQueue 
 {
 public:
