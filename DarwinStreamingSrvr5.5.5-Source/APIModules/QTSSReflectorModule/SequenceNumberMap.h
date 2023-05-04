@@ -1,36 +1,14 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+ The purpose of this class is to maintain a sliding window 
+ that stores the sequence number of received data packets, 
+ in order to determine if any data packets have been lost.
+*/
 /*
     File:       SequenceNumberMap.h
 
     Contains:   Data structure for keeping track of duplicate sequence numbers.
                 Useful for removing duplicate packets from an RTP stream.
                     
-
-    
-
 */
 
 #ifndef _SEQUENCE_NUMBER_MAP_H_
@@ -40,6 +18,8 @@
 
 #define SEQUENCENUMBERMAPTESTING 1
 
+//used to initialize a sliding window and receive an integer parameter inSlidingWindowSize, 
+//representing the size of the sliding window. The default size is 256.
 class SequenceNumberMap
 {
     public:
@@ -48,11 +28,12 @@ class SequenceNumberMap
         {
             kDefaultSlidingWindowSize = 256
         };
-        
+        //used to destroy sliding windows.
         SequenceNumberMap(UInt32 inSlidingWindowSize = kDefaultSlidingWindowSize);
         ~SequenceNumberMap() { delete [] fSlidingWindow; }
         
-        // Returns whether this sequence number was already added or not.
+        // Used to add a new sequence number to the sliding window, returning a Boolean value indicating 
+        //whether the sequence number has already been added.
         Bool16  AddSequenceNumber(UInt16 inSeqNumber);
         
 #if SEQUENCENUMBERMAPTESTING
