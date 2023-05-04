@@ -1,27 +1,26 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+This code implements a Spam Defense module to prevent malicious users 
+from consuming server resources by repeatedly establishing connections. 
+The main functions implemented are as follows:
+
+When the module is initialised, 
+the num_conns_per_ip_addr parameter in the configuration file is read, 
+indicating the number of connections allowed to be established per IP address.
+
+When each client requests to establish a connection, 
+it gets its IP address and checks if it has already established too many connections.
+If the limit is exceeded, an error message is returned and the connection is rejected;
+otherwise, the connection is established and the number of connections to that IP address is added by one.
+
+When each client closes a connection, 
+the number of connections to that IP address is subtracted by one. 
+If no connection has been established to that IP address, it is not processed.
+
+This Spam Defense module ensures efficient querying and modification 
+by using a hash table to maintain the number of connections per IP address.
+Also, to ensure data consistency during concurrency,
+a mutually exclusive lock is used to protect the hash table.
+*/
 /*
     File:       QTSSSpamDefanseModule.cpp
 
