@@ -1,26 +1,5 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
+
  */
 /*
     File:       QTSSHttpFileModule.cpp
@@ -156,12 +135,18 @@ static void         CheckHttpAccessLogState(Bool16 forceEnabled);
 
 // FUNCTION IMPLEMENTATIONS
 
+//The _stublibrary_main function is called, passing in private parameters 
+//and a pointer to the QTSSHttpFileModuleDispatch function to start the module.
 QTSS_Error QTSSHttpFileModule_Main(void* inPrivateArgs)
 {
     return _stublibrary_main(inPrivateArgs, QTSSHttpFileModuleDispatch);
 }
 
 
+//performs different actions depending on the inRole parameters, 
+//including registering, initializing, filtering requests and closing the RTSP session. 
+//In addition, a number of static properties are defined in the code, 
+//including properties for processing requests and properties for logging requests.
 QTSS_Error QTSSHttpFileModuleDispatch(QTSS_Role inRole, QTSS_RoleParamPtr inParams)
 {
     switch (inRole)
@@ -178,7 +163,7 @@ QTSS_Error QTSSHttpFileModuleDispatch(QTSS_Role inRole, QTSS_RoleParamPtr inPara
     return QTSS_NoErr;
 }
 
-
+//is used to add these properties
 QTSS_Error Register(QTSS_Register_Params* inParams)
 {
     sLogMutex = new OSMutex();
@@ -242,6 +227,7 @@ QTSS_Error Register(QTSS_Register_Params* inParams)
     return QTSS_NoErr;
 }
 
+//initialise the module and get the relevant parameters
 QTSS_Error Initialize(QTSS_Initialize_Params* inParams)
 {
     // Setup module utils
@@ -261,12 +247,19 @@ QTSS_Error Initialize(QTSS_Initialize_Params* inParams)
     return QTSS_NoErr;
 }
 
+//Re-read the server configuration file and update the corresponding module parameters
 QTSS_Error RereadPrefs()
 {
+    //The previously allocated sDefaultLogDir memory is freed 
+    //and the GetValueAsString function gets the value of PrefsErrorLogDir and assigns it to sDefaultLogDir.
     delete [] sDefaultLogDir;
     (void)QTSS_GetValueAsString(sServerPrefs, qtssPrefsErrorLogDir, 0, &sDefaultLogDir);
 
-    // Code from Access Log module
+    // The GetAttribute function in the ModuleUtils namespace is called,
+    //which gets the values of the four parameters 
+    //http_xfer_enabled, http_logging, http_logfile_size and http_logfile_interval 
+    //from the server's configuration file 
+    //and assigns They are assigned to the global variables sHTTPFileXferEnabled, sLogEnabled, sMaxLogBytes and sRollInterval respectively.
     QTSSModuleUtils::GetAttribute(sPrefs, "http_xfer_enabled",  qtssAttrDataTypeBool16,
                                 &sHTTPFileXferEnabled, &sDefaultHTTPFileXferEnabled, sizeof(sHTTPFileXferEnabled));
     QTSSModuleUtils::GetAttribute(sPrefs, "http_logging",   qtssAttrDataTypeBool16,
@@ -305,6 +298,17 @@ QTSS_Error FilterRequest(QTSS_Filter_Params* inParams)
     (void)QTSS_GetValuePtr(sServer, qtssSvrRTSPServerHeader, 0, (void**)&serverHdr.Ptr, &serverHdr.Len);
     
     (void)QTSS_GetValuePtr(theSession, sStateAttr, 0, (void**)&theStateP, &theLen);
+    
+    
+    //parse and process the request, returning an error code if there is a problem with the request,
+    //or continue processing if the request is a GET or HEAD request.
+
+    //Next, the request is processed, such as getting the path of the request, 
+    //getting the name of the server's movie folder, getting the name of the HTTP folder,etc.
+
+    //Finally, depending on where the request is located,
+    //it is determined whether to generate a referenced movie for a single file or a referenced movie for a folder.
+    
     if ( (theStateP == NULL) || (theLen != sizeof(UInt32)) )
     {
         // Initial state.   
@@ -447,8 +451,7 @@ QTSS_Error FilterRequest(QTSS_Filter_Params* inParams)
         }
         
                 
-        // If type is still 0, it is neither an HTTP file transfer request nor an on-the-fly ref movie request
-        // Just return
+        // If type is still 0, it is neither an HTTP file transfer request nor an on-the-fly ref movie request Just return
         if ( type == 0 )
         {
 #if HTTP_FILE_DEBUGGING
@@ -498,8 +501,9 @@ QTSS_Error FilterRequest(QTSS_Filter_Params* inParams)
         switch (type) 
         {
             case transferHttpFile:      
-            {                               // Allocate memory for theFileBuffer
-                                            theFileBuffer = NEW char[sFileBufSize];  
+            {                 
+            // Allocate memory for theFileBuffer
+                                            theFileBuffer = NEW char[sFileBufSize];
                                             httpRequest->CreateResponseHeader(http10Version, httpOK);
                                             httpRequest->AppendConnectionCloseHeader();
                                             theLen = sizeof(UInt64);
@@ -523,6 +527,7 @@ QTSS_Error FilterRequest(QTSS_Filter_Params* inParams)
                                             fileBufferLen = sZero;
                                             // Set the state to reading so that file contents can be read into the buffer
                                             initialState = kReadingBufferState;
+                                            
                                             break;
             }
             case transferRefMovieFolder:
@@ -900,8 +905,7 @@ QTSS_Error FilterRequest(QTSS_Filter_Params* inParams)
                                         }
            
                                         // We have flushed the buffer. Check to see if we are done. 
-                                        // If it is Http transfer of the file, we need to check if 
-                                        // we read the entire file. If we are, delete stuff and return
+                                        // If it is Http transfer of the file, we need to check if we read the entire file. If we are, delete stuff and return
                                         if ((theTransferType == transferHttpFile) && (theOffset == theFileLength))
                                         {
 #if HTTP_FILE_DEBUGGING
@@ -1008,6 +1012,16 @@ QTSS_Error CloseRTSPSession(QTSS_RTSPSession_Params* inParams)
     return QTSS_NoErr;
 }
 
+//A function to calculate the bitrate of an audio/video file. 
+//It first opens an audio/video file and then iterates through each track, 
+//adding up the total number of RTP bytes if it is a HintTrack.
+//The file length is calculated and a fixed bitrate value is returned based on the actual bitrate. 
+//If the actual bitrate is less than or equal to 14000, 14000 is returned;
+//if the actual bitrate is less than or equal to 28000, 28000 is returned; 
+//if the actual bitrate is less than or equal to 56000, 56000 is returned; 
+//if the actual bitrate is less than or equal to 112000, 112000 is returned;
+//otherwise 150000 is returned.
+
 UInt32 GetBitRate(char* filePath) 
 {
     UInt32 actualRate = 0, rate = 0;
@@ -1057,7 +1071,20 @@ UInt32 GetBitRate(char* filePath)
 
     return rate;
 }
-       
+    
+//A function that generates a moov box for an audio/video file. 
+//In the MP4 file format, moov is an important box that contains metadata information about the entire file,
+//such as video size, bitrate, duration, etc.
+
+//The rmda box is placed at the end of the rmra box, 
+//where the first 8 bytes of the rmra box are used to store the size of the entire box, 
+//followed by 4 bytes of the box type, i.e. "rmra", followed by the rmda box information.
+
+//The moov box is generated by placing the rmra box at the end of the moov box,
+//again preceded by 8 bytes to store the size of the whole box and 4 bytes of the box type "moov".
+
+//The return value of the function is a pointer to the moov box,
+//which needs to be freed manually after the call
 void* MakeMoov(void* rmda, UInt32 rmdaLen, UInt32* moovLen)
 {
        UInt32 *rmra, rmraLen, *moov;
@@ -1155,6 +1182,9 @@ void* MakeRmda(char* url, UInt32 rate, UInt32* rmdaLen)
       return rmda;
 }
 
+//Accepts a filename as an argument and returns the MIME type of the file. 
+//It first gets the file suffix by parsing the file name, 
+//then determines the file type based on the suffix and returns the corresponding MIME type.
 StrPtrLen* GetMimeType(StrPtrLen* fileName)
 {
 
@@ -1184,6 +1214,10 @@ StrPtrLen* GetMimeType(StrPtrLen* fileName)
     return &sUnknownMimeType;
 }
 
+//Logs information about the HTTP request, 
+//including the timestamp, remote host address, request content, 
+//return status code, number of bytes transferred, etc., 
+//and writes this information to the HTTP access log.
 void LogRequest(QTSS_RTSPSessionObject inRTSPSession)
 {
     static StrPtrLen sUnknownStr(sVoidField);
@@ -1248,6 +1282,9 @@ void LogRequest(QTSS_RTSPSessionObject inRTSPSession)
     sAccessLog->WriteToLog(tempLogBuffer, kAllowLogToRoll);
 }
 
+//Checks the status of the current HTTP access logging module
+//and decides whether the access logging object needs to be created or destroyed depending on
+//whether logging is forced on or off and whether logging is currently on.
 void CheckHttpAccessLogState(Bool16 forceEnabled)
 {
     // Code from Access Log module
