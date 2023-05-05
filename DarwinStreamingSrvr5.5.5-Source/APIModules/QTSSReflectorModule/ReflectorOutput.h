@@ -1,26 +1,10 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
+ ReflectorOutput is used to represent the output of the reflector. 
+ This class has some member variables and functions, 
+ including functions such as initializing bookmarks, obtaining bookmark packages, 
+ and setting bookmark packages. 
+ There is also a Virtual function WritePacket for writing data packages.
+ The purpose of this class is to process the data packets sent by the reflector and send them to the client.
  */
 /*
     File:       ReflectorOutput.h
@@ -28,8 +12,7 @@
     Contains:   VERY simple abstract base class that defines one virtual method, WritePacket.
                 This is extremely useful to the reflector, which, using one of these objects,
                 can transparently reflect a packet, not being aware of how it will actually be
-                written to the network
-                    
+                written to the network                   
 
 
 */
@@ -72,12 +55,11 @@ inline  OSQueueElem*    GetBookMarkedPacket(OSQueue *thePacketQueue);
 inline  Bool16          SetBookMarkPacket(OSQueueElem* thePacketElemPtr);
         
         // WritePacket
-        //
+        
         // Pass in the packet contents, the cookie of the stream to which it will be written,
-        // and the QTSS API write flags (this should either be qtssWriteFlagsIsRTP or IsRTCP
+        // and the QTSS API write flags (this should either be qtssWriteFlagsIsRTP or IsRTCP)
         // packetLateness is how many MSec's late this packet is in being delivered ( will be < 0 if its early )
-        // If this function returns QTSS_WouldBlock, timeToSendThisPacketAgain will
-        // be set to # of msec in which the packet can be sent, or -1 if unknown
+        // If this function returns QTSS_WouldBlock, timeToSendThisPacketAgain will be set to # of msec in which the packet can be sent, or -1 if unknown
         virtual QTSS_Error  WritePacket(StrPtrLen* inPacket, void* inStreamCookie, UInt32 inFlags, SInt64 packetLatenessInMSec, SInt64* timeToSendThisPacketAgain, UInt64* packetIDPtr, SInt64* arrivalTimeMSec ) = 0;
     
         virtual void        TearDown() = 0;
@@ -97,7 +79,6 @@ inline  Bool16          SetBookMarkPacket(OSQueueElem* thePacketElemPtr);
             
             fNumBookmarks = numBookmarks;
         }
-
 };
 
 Bool16  ReflectorOutput::SetBookMarkPacket(OSQueueElem* thePacketElemPtr)
@@ -114,10 +95,8 @@ Bool16  ReflectorOutput::SetBookMarkPacket(OSQueueElem* thePacketElemPtr)
                 return true;
             }
         }
-    }
-    
+    }    
     return false;
-
 }
 
 OSQueueElem*    ReflectorOutput::GetBookMarkedPacket(OSQueue *thePacketQueue)
@@ -127,8 +106,7 @@ OSQueueElem*    ReflectorOutput::GetBookMarkedPacket(OSQueue *thePacketQueue)
     OSQueueElem*        packetElem = NULL;              
     UInt32              curBookmark = 0;
     
-    fAvailPosition = -1;
-    
+    fAvailPosition = -1;    
     Assert( curBookmark < fNumBookmarks );       
     
     // see if we've bookmarked a held packet for this Sender in this Output
@@ -152,16 +130,10 @@ OSQueueElem*    ReflectorOutput::GetBookMarkedPacket(OSQueue *thePacketQueue)
         else
         {
             fAvailPosition = curBookmark;
-        }
-        
-        curBookmark++;
-            
+        }        
+        curBookmark++;            
     }
-    
     return packetElem;
 }                
-
-
-
 
 #endif //__REFLECTOR_OUTPUT_H__
