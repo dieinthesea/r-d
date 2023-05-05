@@ -1,36 +1,24 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+Mainly used to achieve reverse streaming media forwarding
+
+Among them, class ReflectorPacket represents a package that contains relevant information about the package.
+
+Class ReflectorSocket represents a socket for reverse streaming media forwarding, used to send 
+and receive reverse streaming media packets.
+
+Class ReflectorSender represents a sender that contains a sending queue for sending packets.
+
+Class ReflectorStream represents a stream that contains an output queue for outputting streaming media data.
+
+These classes communicate through friendly relationships, achieving the function of reverse streaming media forwarding
+*/
 /*
     File:       ReflectorStream.h
 
     Contains:   This object supports reflecting an RTP multicast stream to N
                 RTPStreams. It spaces out the packet send times in order to
                 maximize the randomness of the sending pattern and smooth
-                the stream.
-                    
-    
+                the stream.   
 
 */
 
@@ -104,14 +92,12 @@ inline  SInt64  GetPacketNTPTime();
         char        fPacketData[kMaxReflectorPacketSize];
         StrPtrLen   fPacketPtr;
         Bool16      fIsRTCP;
-        Bool16      fNeededByOutput; // is this packet still needed for output?
+        Bool16      fNeededByOutput; // packet still needed for output or not
         UInt64      fStreamCountID;
                 
         friend class ReflectorSender;
         friend class ReflectorSocket;
-        friend class RTPSessionOutput;
-        
-   
+        friend class RTPSessionOutput;   
 };
 
 UInt32  ReflectorPacket::GetSSRC(Bool16 isRTCP) 
@@ -121,17 +107,14 @@ UInt32  ReflectorPacket::GetSSRC(Bool16 isRTCP)
                 
     UInt32* theSsrcPtr = (UInt32*)fPacketPtr.Ptr;
     if (isRTCP)// RTCP 
-        return ntohl(theSsrcPtr[1]); 
-            
+        return ntohl(theSsrcPtr[1]);             
     if (fPacketPtr.Len < 12)
-        return 0;
-    
+        return 0;    
     return ntohl(theSsrcPtr[2]);  // RTP SSRC
 }
 
 UInt32 ReflectorPacket::GetPacketRTPTime()
 {
-    
     UInt32 timestamp = 0;
     if (!fIsRTCP)
     {
@@ -173,8 +156,6 @@ SInt64  ReflectorPacket::GetPacketNTPTime()
     ::memcpy(&ntp, theReport, sizeof(SInt64));
     
     return OS::Time1900Fixed64Secs_To_TimeMilli(OS::NetworkToHostSInt64(ntp));
-
-
 }
 
 
@@ -196,7 +177,7 @@ class ReflectorSocket : public IdleTask, public UDPSocket
         void    SetSSRCFilter(Bool16 state, UInt32 timeoutSecs) { fFilterSSRCs = state; fTimeoutSecs = timeoutSecs;}
     private:
         
-        //virtual SInt64        Run();
+        
         void    GetIncomingData(const SInt64& inMilliseconds);
         void    FilterInvalidSSRCs(ReflectorPacket* thePacket,Bool16 isRTCP);
 
@@ -224,7 +205,6 @@ class ReflectorSocket : public IdleTask, public UDPSocket
         UInt64  fFirstReceiveTime;
         SInt64  fFirstArrivalTime;
         UInt32  fCurrentSSRC;
-
 };
 
 
@@ -244,7 +224,7 @@ class ReflectorSender : public UDPDemuxerTask
     public:
     ReflectorSender(ReflectorStream* inStream, UInt32 inWriteFlag);
     virtual ~ReflectorSender();
-        // Queue of senders
+    // Queue of senders
     OSQueue fSenderQueue;
     SInt64  fSleepTime;
     
@@ -253,8 +233,8 @@ class ReflectorSender : public UDPDemuxerTask
     void        SetPacketSeqNumber(const StrPtrLen& inPacket, UInt16 inSeqNumber);
     Bool16      PacketShouldBeThinned(QTSS_RTPStreamObject inStream, const StrPtrLen& inPacket);
 
-    //We want to make sure that ReflectPackets only gets invoked when there
-    //is actually work to do, because it is an expensive function
+    //We want to make sure that ReflectPackets only gets invoked 
+    //when thereis actually work to do, because it is an expensive function
     Bool16      ShouldReflectNow(const SInt64& inCurrentTime, SInt64* ioWakeupTime);
     
     //This function gets data from the multicast source and reflects.
@@ -284,8 +264,7 @@ class ReflectorSender : public UDPDemuxerTask
     OSQueueElem*    fFirstNewPacketInQueue;
     OSQueueElem*    fFirstPacketInQueueForNewOutput;
     
-    //these serve as an optimization, keeping track of when this
-    //sender needs to run so it doesn't run unnecessarily
+    //these serve as an optimization, keeping track of when this sender needs to run so it doesn't run unnecessarily
     Bool16      fHasNewPackets;
     SInt64      fNextTimeToRun;
             
@@ -308,13 +287,12 @@ class ReflectorStream
     
         enum
         {
-            // A ReflectorStream is uniquely identified by the
-            // destination IP address & destination port of the broadcast.
+            // A ReflectorStream is uniquely identified by the destination IP address & destination port of the broadcast.
             // This ID simply contains that information.
-            //
-            // A unicast broadcast can also be identified by source IP address. If
-            // you are attempting to demux by source IP, this ID will not guarentee
-            // uniqueness and special care should be used.
+            
+            // A unicast broadcast can also be identified by source IP address.
+            // If you are attempting to demux by source IP, 
+            // this ID will not guarentee uniqueness and special care should be used.
             kStreamIDSize = sizeof(UInt32) + sizeof(UInt16)
         };
         
@@ -322,29 +300,23 @@ class ReflectorStream
         static void GenerateSourceID(SourceInfo::StreamInfo* inInfo, char* ioBuffer);
     
         ReflectorStream(SourceInfo::StreamInfo* inInfo);
-        ~ReflectorStream();
+        ~ReflectorStream();        
         
-        //
-        // SETUP
-        //
-        // Call Register from the Register role, as this object has some QTSS API
-        // attributes to setup
+        // SETUP        
+        // Call Register from the Register role, as this object has some QTSS API attributes to setup
         static void Register();
-        static void Initialize(QTSS_ModulePrefsObject inPrefs);
+        static void Initialize(QTSS_ModulePrefsObject inPrefs);       
         
-        //
         // MODIFIERS
         
         // Call this to initialize the reflector sockets. Uses the QTSS_RTSPRequestObject
-        // if provided to report any errors that occur 
-        // Passes the QTSS_ClientSessionObject to the socket so the socket can update the session if needed.
+        // if provided to report any errors that occur Passes the QTSS_ClientSessionObject to the socket so the socket can update the session if needed.
         QTSS_Error BindSockets(QTSS_StandardRTSP_Params* inParams, UInt32 inReflectorSessionFlags, Bool16 filterState, UInt32 timeout);
         
         // This stream reflects packets from the broadcast to specific ReflectorOutputs.
         // You attach outputs to ReflectorStreams this way. You can force the ReflectorStream
         // to put this output into a certain bucket by passing in a certain bucket index.
-        // Pass in -1 if you don't care. AddOutput returns the bucket index this output was
-        // placed into, or -1 on an error.
+        // Pass in -1 if you don't care. AddOutput returns the bucket index this output was placed into, or -1 on an error.
         
         SInt32  AddOutput(ReflectorOutput* inOutput, SInt32 putInThisBucket);
         
@@ -353,13 +325,12 @@ class ReflectorStream
         
         void  TearDownAllOutputs(); // causes a tear down and then a remove
 
-        // If the incoming data is RTSP interleaved, packets for this stream are identified
-        // by channel numbers
+        // If the incoming data is RTSP interleaved, packets for this stream are identified by channel numbers
         void                    SetRTPChannelNum(SInt16 inChannel) { fRTPChannel = inChannel; }
         void                    SetRTCPChannelNum(SInt16 inChannel) { fRTCPChannel = inChannel; }
         void                    PushPacket(char *packet, UInt32 packetLen, Bool16 isRTCP);
         
-        //
+        
         // ACCESSORS
         
         OSRef*                  GetRef()            { return &fRef; }
@@ -446,8 +417,7 @@ inline  void                    UpdateBitRate(SInt64 currentTime);
         UInt32*     fEyeLocation;//place in the buffer to write the eye information
         UInt32      fReceiverReportSize;
         
-        // This is the destination address & port for RTCP
-        // receiver reports.
+        // This is the destination address & port for RTCP receiver reports.
         UInt32      fDestRTCPAddr;
         UInt16      fDestRTCPPort;
     
@@ -496,7 +466,6 @@ void    ReflectorStream::UpdateBitRate(SInt64 currentTime)
         bps *= 1000;
         fCurrentBitRate = (UInt32)bps;
         
-        // Don't check again for awhile!
         fLastBitRateSample = currentTime;
     }
 }
