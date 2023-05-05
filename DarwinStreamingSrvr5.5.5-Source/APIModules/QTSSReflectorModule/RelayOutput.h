@@ -1,27 +1,7 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+RelayOutput, which inherits from the ReflectorOutput class. 
+The role of the RelayOutput class is to implement forwarding an RTSP/RTP stream to another server
+*/
 /*
     File:       RelayOutput.h
 
@@ -48,20 +28,19 @@ class RelayOutput : public ReflectorOutput
 {
     public:
     
-        // Call Register in the Relay Module's Register Role
         static void Register();
         
         RelayOutput(SourceInfo* inInfo, UInt32 inWhichOutput, RelaySession* inSession, Bool16 isRTSPSourceInfo);
         virtual ~RelayOutput();
         
-        // Returns true if this output matches one of the Outputs in the SourceInfo.
+        // Used to compare whether two RelayOutput objects are equal
         // Also marks the proper SourceInfo::OutputInfo "fAlreadySetup" flag as true 
         Bool16  Equal(SourceInfo* inInfo);
         
-        // Call this to setup this object's output socket
+        // Used to bind a UDP socket.
         OS_Error BindSocket();
         
-        // Writes the packet directly to a UDP socket
+        // Used to write an RTP packet to a UDP socket.
         virtual QTSS_Error  WritePacket(StrPtrLen* inPacket, void* inStreamCookie, UInt32 inFlags, SInt64 packetLatenessInMSec,  SInt64* timeToSendThisPacketAgain, UInt64* packetIDPtr, SInt64* arrivalTime);
         
         virtual Bool16              IsUDP() { return true; }
@@ -74,15 +53,15 @@ class RelayOutput : public ReflectorOutput
         StrPtrLen*          GetOutputInfoHTML() { return &fOutputInfoHTML; }
 
         UInt32              GetCurPacketsPerSecond() { return fPacketsPerSecond; }
-        UInt32              GetCurBitsPerSecond()    { return fBitsPerSecond; }
-        UInt64&             GetTotalPacketsSent()    { return fTotalPacketsSent; }
-        UInt64&             GetTotalBytesSent()      { return fTotalBytesSent; }
+        UInt32              GetCurBitsPerSecond()    { return fBitsPerSecond; }//Gets the current RTP packet size transmitted per second (in bits).
+        UInt64&             GetTotalPacketsSent()    { return fTotalPacketsSent; }//The total number of RTP packets obtained for transmission.
+        UInt64&             GetTotalBytesSent()      { return fTotalBytesSent; }//The total size of RTP packets obtained for transmission
         Bool16              IsValid()               { return fValid; }
         
-        // Use these functions to iterate over all RelayOutputs
+      
         static OSMutex* GetQueueMutex() { return &sQueueMutex; }
         static OSQueue* GetOutputQueue(){ return &sRelayOutputQueue; }
-        void TearDown() {};
+        void TearDown() {};//Used to clean up the current RelayOutput object.
 
         SInt64 RunAnnounce();
         
@@ -170,12 +149,6 @@ class RelayOutput : public ReflectorOutput
         static QTSS_AttributeID         sOutputCurBitsPerSec;
         static QTSS_AttributeID         sOutputTotalPacketsSent;
         static QTSS_AttributeID         sOutputTotalBytesSent;
-
-
-
-
-
-
 };
         
         
