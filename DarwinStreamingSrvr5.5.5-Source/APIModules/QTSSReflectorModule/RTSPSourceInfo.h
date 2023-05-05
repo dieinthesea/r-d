@@ -1,26 +1,11 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
+RTSSourceInfo class, inherited from RCFSourceInfo class.
+
+The RTSPOutputInfo class is mainly used to handle RTSP protocols,
+including parsing configuration file information, connecting to RTSP servers, 
+sending request messages, processing response messages, and so on. 
+There are also some auxiliary functions,
+such as obtaining local SDP data, obtaining source IDs, etc.
  */
 /*
     File:       RTSPSourceInfo.h
@@ -108,20 +93,18 @@ class RTSPSourceInfo : public RCFSourceInfo
         
         void SetClientInfo(UInt32 inAddr, UInt16 inPort, char* inURL, UInt32 inLocalAddr = 0);
         
-        // Call this immediately after the constructor. This object will parse
-        // the config file and extract the necessary information to connect to an rtsp server.
+        // Call this immediately after the constructor.
+        // This object will parse the config file and extract the necessary information to connect to an rtsp server.
         // Specify the config file line index where the "rtsp_source" line resides
         QTSS_Error  ParsePrefs(XMLTag* relayTag, Bool16 inAnnounce);
 
-        // Connects, sends a DESCRIBE, and parses the incoming SDP data. After this
-        // function completes sucessfully, GetLocalSDP returns the data, and the
-        // SourceInfo & DestInfo arrays will be set up. Also sends SETUPs for all the
-        // tracks, and finishes by issuing a PLAY.
-        //
-        // These functions return QTSS_NoErr if the transaction has completed
-        // successfully. Otherwise, they return:
-        //
-        // EAGAIN: the transaction is still in progress, the call should be reissued
+        // Connects, sends a DESCRIBE, and parses the incoming SDP data.
+        // After this function completes sucessfully, GetLocalSDP returns the data, 
+        // and the SourceInfo & DestInfo arrays will be set up.
+        // Also sends SETUPs for all the tracks, and finishes by issuing a PLAY.
+        
+        // These functions return QTSS_NoErr if the transaction has completed successfully.
+        // Otherwise, they return: EAGAIN: the transaction is still in progress, the call should be reissued
         // QTSS_RequestFailed: the remote host responded with an error.
         // Any other error means that the remote host was unavailable or refused the connection
         QTSS_Error  Describe();
@@ -138,8 +121,8 @@ class RTSPSourceInfo : public RCFSourceInfo
         virtual char*   GetAnnounceSDP(UInt32 ipAddr, UInt32* newSDPLen);
         virtual StrPtrLen*  GetSourceID() { return fClient->GetURL(); }
         
-        // This object looks for this keyword in the FilePrefsSource, where it
-        // expects the IP address, port, and URL.
+        // This object looks for this keyword in the FilePrefsSource, 
+        //where it expects the IP address, port, and URL.
         static StrPtrLen&   GetRTSPSourceString() { return sKeyString; }
         
         RTSPClient* GetRTSPClient()     { return fClient; }
@@ -183,10 +166,8 @@ class RTSPSourceInfo : public RCFSourceInfo
         class RelaySessionCreator : public Task
         {
             public:
-                RelaySessionCreator(RTSPSourceInfo* inInfo) : fInfo(inInfo) {this->SetTaskName("RTSPSourceInfo::RelaySessionCreator");}
-                
+                RelaySessionCreator(RTSPSourceInfo* inInfo) : fInfo(inInfo) {this->SetTaskName("RTSPSourceInfo::RelaySessionCreator");
                 virtual SInt64 Run();
-
                 RTSPSourceInfo* fInfo;
         };
         
@@ -194,8 +175,7 @@ class RTSPSourceInfo : public RCFSourceInfo
         {
             public:
                 TeardownTask(TCPClientSocket* clientSocket, RTSPClient* client);
-                virtual ~TeardownTask();
-                
+                virtual ~TeardownTask();                
                 virtual SInt64 Run();
                 
             private:
