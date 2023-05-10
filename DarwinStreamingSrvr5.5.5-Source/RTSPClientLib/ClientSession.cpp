@@ -206,7 +206,7 @@ SInt64 ClientSession::Run()
     if (theEvents & Task::kTimeoutEvent)
     {
 #if CLIENT_SESSION_DEBUG
-        qtss_printf("Session timing out.\n");
+        SSS_printf("Session timing out.\n");
 #endif
         fDeathReason = kSessionTimedout;
         fState = kDone;
@@ -218,7 +218,7 @@ SInt64 ClientSession::Run()
     if (theEvents & ClientSession::kTeardownEvent)
     {
 #if CLIENT_SESSION_DEBUG
-        sss_printf("Session tearing down immediately.\n");
+        SSS_printf("Session tearing down immediately.\n");
 #endif
         fTeardownImmediately = true;
     }
@@ -227,7 +227,7 @@ SInt64 ClientSession::Run()
     if (theEvents & Task::kKillEvent)
     {
 #if CLIENT_SESSION_DEBUG
-        qtss_printf("Session killed.\n");
+        SSS_printf("Session killed.\n");
 #endif
         sActiveConnections--;
         return -1;
@@ -252,7 +252,7 @@ SInt64 ClientSession::Run()
                         theErr = fClient->SendOptions();
 
 #if CLIENT_SESSION_DEBUG
-                qtss_printf("Sending OPTIONS. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
+                SSS_printf("Sending OPTIONS. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
 #endif              
                     if (0 == fTransactionStartTimeMilli) 
                        fTransactionStartTimeMilli = OS::Milliseconds();
@@ -270,10 +270,10 @@ SInt64 ClientSession::Run()
                     {
                         if (fClient->IsVerbose())
                         {
-                            qtss_printf("--- Options transaction time ms = %qd  ---\n", (SInt64) ( OS::Milliseconds() - fTransactionStartTimeMilli) );
+                            SSS_printf("--- Options transaction time ms = %qd  ---\n", (SInt64) ( OS::Milliseconds() - fTransactionStartTimeMilli) );
                             SInt32 receivedLength = (SInt32) fClient->GetContentLength();
                             if (receivedLength != 0)
-                                qtss_printf("--- Options Request Random Data Received requested = %ld received = %ld  ---\n", fOptionsRandomDataSize, receivedLength);
+                                SSS_printf("--- Options Request Random Data Received requested = %ld received = %ld  ---\n", fOptionsRandomDataSize, receivedLength);
                                 
                             StrPtrLenDel theBody(ConvertBytesToCHexString(fClient->GetContentBody(), receivedLength));
                             theBody.PrintStr("\n");
@@ -288,7 +288,7 @@ SInt64 ClientSession::Run()
             {
                 theErr = fClient->SendDescribe(fAppendJunk);
 #if CLIENT_SESSION_DEBUG
-                qtss_printf("Sending DESCRIBE. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
+                SSS_printf("Sending DESCRIBE. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
 #endif              
                 if (theErr == OS_NoErr)
                 {
@@ -300,24 +300,21 @@ SInt64 ClientSession::Run()
                     }
                     else
                     {
-                        //
+                        
                         // We've sent a describe and gotten a response from the server.
                         // Parse the response and look for track information.
 
-                        fSDPParser.Parse(fClient->GetContentBody(), fClient->GetContentLength());
+                        fSDPParser.Parse(fClient->GetContentBody(), fClient->GetContentLength());                        
                         
-                        //
                         // The SDP must have been misformatted.
                         if (fSDPParser.GetNumStreams() == 0)
                             fDeathReason = kBadSDP;
-                            
-                        //
+
                         // We have valid SDP. If this is a UDP connection, construct a UDP
                         // socket array to act as incoming sockets.
                         if ((fTransportType == kUDPTransportType) || (fTransportType == kReliableUDPTransportType))
                             this->SetupUDPSockets();
-                            
-                        //
+
                         // Setup client stats
                         fStats = NEW TrackStats[fSDPParser.GetNumStreams()];
                         ::memset(fStats, 0, sizeof(TrackStats) * fSDPParser.GetNumStreams());
@@ -345,7 +342,7 @@ SInt64 ClientSession::Run()
                                                 fUDPSocketArray[fNumSetups*2]->GetLocalPort());
                 }
 #if CLIENT_SESSION_DEBUG
-                qtss_printf("Sending SETUP #%lu. Result = %lu. Response code = %lu\n", fNumSetups, theErr, fClient->GetStatus());
+                SSS_printf("Sending SETUP #%lu. Result = %lu. Response code = %lu\n", fNumSetups, theErr, fClient->GetStatus());
 #endif              
                 //
                 // If this SETUP request / response is complete, check for errors, and if
@@ -377,7 +374,7 @@ SInt64 ClientSession::Run()
                 else
                     theErr = fClient->SendPlay(fStartPlayTimeInSec, fSpeed);
 #if CLIENT_SESSION_DEBUG
-                qtss_printf("Sending PLAY. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
+                SSS_printf("Sending PLAY. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
 #endif              
                 // If this PLAY request / response is complete, then we are done with setting
                 // up all the client crap. Now all we have to do is receive the data until it's
@@ -454,11 +451,6 @@ SInt64 ClientSession::Run()
                             break;
                     }
 
-                    // If we are supposed to drop the POST side of the HTTP connection,
-                    // do so now, after the 1st set of RTCP packets
-                    if ((fCurRTCPTrack == fSDPParser.GetNumStreams()) && (fControlType == kRTSPHTTPDropPostControlType))
-                        ((HTTPClientSocket*)fSocket)->ClosePost();
-
                     return fReadInterval;
                 }
                 break;
@@ -467,7 +459,7 @@ SInt64 ClientSession::Run()
             {
                 theErr = fClient->SendTeardown();
 #if CLIENT_SESSION_DEBUG
-                qtss_printf("Sending TEARDOWN. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
+                SSS_printf("Sending TEARDOWN. Result = %lu. Response code = %lu\n", theErr, fClient->GetStatus());
 #endif              
                 // Once the TEARDOWN is complete, we are done, so mark ourselves as dead, and wait
                 // for the owner of this object to delete us
@@ -504,7 +496,7 @@ SInt64 ClientSession::Run()
 
 #if CLIENT_SESSION_DEBUG
     if (fState == kDone)
-        qtss_printf("Client connection complete. Death reason = %ul\n", fDeathReason);
+        SSS_printf("Client connection complete. Death reason = %ul\n", fDeathReason);
 #endif              
 
     return 0;
@@ -530,7 +522,7 @@ void    ClientSession::SetupUDPSockets()
         theErr = fUDPSocketArray[x]->Open();
         if (theErr != OS_NoErr)
         {
-            qtss_printf("ClientSession: Failed to open a UDP socket.\n");
+            SSS_printf("ClientSession: Failed to open a UDP socket.\n");
             ::exit(-1);
         }
     }
@@ -560,13 +552,13 @@ void    ClientSession::SetupUDPSockets()
             {
                 // Make sure we don't loop forever trying to bind a UDP socket. If we can't
                 // after a certain point, just bail...
-                qtss_printf("ClientSession: Failed to bind a UDP socket.\n");
+                SSS_printf("ClientSession: Failed to bind a UDP socket.\n");
                 ::exit(-1);
             }
         }
     }                       
 #if CLIENT_SESSION_DEBUG
-    qtss_printf("Opened UDP sockets for %lu streams\n", fSDPParser.GetNumStreams());
+    SSS_printf("Opened UDP sockets for %lu streams\n", fSDPParser.GetNumStreams());
 #endif              
 }
 
