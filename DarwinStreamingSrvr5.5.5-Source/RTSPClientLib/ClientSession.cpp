@@ -98,7 +98,7 @@ ClientSession::ClientSession(   UInt32 inAddr, UInt16 inPort, char* inURL,
        fState = kSendingOptions;
        
 #if CLIENT_SESSION_DEBUG
-    //qtss_printf("Connecting to: %s, port %d\n", inet_ntoa(inAddr), inPort);
+    //SSS_printf("Connecting to: %s, port %d\n", inet_ntoa(inAddr), inPort);
 #endif  
     //
     // Construct the appropriate ClientSocket type depending on what type of client we are supposed to be
@@ -141,7 +141,7 @@ ClientSession::ClientSession(   UInt32 inAddr, UInt16 inPort, char* inURL,
         }
         default:
         {
-            qtss_printf("ClientSession: Attempt to create unsupported client type.\n");
+            SSS_printf("ClientSession: Attempt to create unsupported client type.\n");
             ::exit(-1);
         }
     }
@@ -735,7 +735,7 @@ void    ClientSession::ProcessMediaPacket(  char* inPacket, UInt32 inLength,
 
 #if CLIENT_SESSION_DEBUG
                 if ( (fStats[x].fNumOutOfOrderPackets > 0) || (fStats[x].fNumLostPackets > 0) )
-                    qtss_printf("Got %lu packets for trackID %lu. %lu packets lost, %lu packets out of order\n", fStats[x].fNumPacketsReceived, inTrackID, fStats[x].fNumLostPackets, fStats[x].fNumOutOfOrderPackets);
+                    SSS_printf("Got %lu packets for trackID %lu. %lu packets lost, %lu packets out of order\n", fStats[x].fNumPacketsReceived, inTrackID, fStats[x].fNumLostPackets, fStats[x].fNumOutOfOrderPackets);
 #endif              
            
             }
@@ -756,17 +756,17 @@ void    ClientSession::ProcessMediaPacket(  char* inPacket, UInt32 inLength,
                 RTPMetaInfoPacket theMetaInfoPacket;
                 if (!theMetaInfoPacket.ParsePacket((UInt8*)inPacket, inLength, theMetaInfoFields))
                 {
-                    qtss_printf("Received invalid RTP-Meta-Info packet\n");
+                    SSS_printf("Received invalid RTP-Meta-Info packet\n");
                 }
                 else
                 {
-                    qtss_printf("---\n");
-                    qtss_printf("TrackID: %lu\n", inTrackID);
-                    qtss_printf("Packet transmit time: %"_64BITARG_"d\n", theMetaInfoPacket.GetTransmitTime());
-                    qtss_printf("Frame type: %u\n", theMetaInfoPacket.GetFrameType());
-                    qtss_printf("Packet number: %"_64BITARG_"u\n", theMetaInfoPacket.GetPacketNumber());
-                    qtss_printf("Packet position: %"_64BITARG_"u\n", theMetaInfoPacket.GetPacketPosition());
-                    qtss_printf("Media data length: %lu\n", theMetaInfoPacket.GetMediaDataLen());
+                    SSS_printf("---\n");
+                    SSS_printf("TrackID: %lu\n", inTrackID);
+                    SSS_printf("Packet transmit time: %"_64BITARG_"d\n", theMetaInfoPacket.GetTransmitTime());
+                    SSS_printf("Frame type: %u\n", theMetaInfoPacket.GetFrameType());
+                    SSS_printf("Packet number: %"_64BITARG_"u\n", theMetaInfoPacket.GetPacketNumber());
+                    SSS_printf("Packet position: %"_64BITARG_"u\n", theMetaInfoPacket.GetPacketPosition());
+                    SSS_printf("Media data length: %lu\n", theMetaInfoPacket.GetMediaDataLen());
                 }
             }
         }
@@ -796,7 +796,7 @@ void ClientSession::AckPackets(UInt32 inTrackIndex, UInt16 inCurSeqNum, Bool16 i
         inCurSeqNum = fStats[inTrackIndex].fHighestSeqNum;
     }
 #if CLIENT_SESSION_DEBUG
-    qtss_printf("Highest seq num: %d\n", inCurSeqNum);
+    SSS_printf("Highest seq num: %d\n", inCurSeqNum);
 #endif
 
     //
@@ -808,14 +808,14 @@ void ClientSession::AckPackets(UInt32 inTrackIndex, UInt16 inCurSeqNum, Bool16 i
     {
         *(theWriter++) = htonl(fStats[inTrackIndex].fLastAckedSeqNum + 1);
 #if CLIENT_SESSION_DEBUG
-        qtss_printf("TrackID: %d Acking: %d\n", fSDPParser.GetStreamInfo(inTrackIndex)->fTrackID, fStats[inTrackIndex].fLastAckedSeqNum + 1);
+        SSS_printf("TrackID: %d Acking: %d\n", fSDPParser.GetStreamInfo(inTrackIndex)->fTrackID, fStats[inTrackIndex].fLastAckedSeqNum + 1);
 #endif
 
         UInt16 maskPosition = fStats[inTrackIndex].fLastAckedSeqNum + 2;
         SInt16 numPacketsInMask = (inCurSeqNum + 1) - (fStats[inTrackIndex].fLastAckedSeqNum + 2);
         
 #if CLIENT_SESSION_DEBUG
-        qtss_printf("NumPacketsInMask: %d\n", numPacketsInMask);
+        SSS_printf("NumPacketsInMask: %d\n", numPacketsInMask);
 #endif
         for (SInt32 y = 0; y < numPacketsInMask; y+=32)
         {
@@ -828,14 +828,14 @@ void ClientSession::AckPackets(UInt32 inTrackIndex, UInt16 inCurSeqNum, Bool16 i
                 if (offsetFromHighest >= 0)
                 {
 #if CLIENT_SESSION_DEBUG
-                    qtss_printf("TrackID: %d Acking in mask: %d\n", fSDPParser.GetStreamInfo(inTrackIndex)->fTrackID, maskPosition);
+                    SSS_printf("TrackID: %d Acking in mask: %d\n", fSDPParser.GetStreamInfo(inTrackIndex)->fTrackID, maskPosition);
 #endif
                     mask |= 1;
                 }
                 else if (maskPosition == inCurSeqNum)
                 {
 #if CLIENT_SESSION_DEBUG
-                    qtss_printf("TrackID: %d Acking in mask: %d\n", fSDPParser.GetStreamInfo(inTrackIndex)->fTrackID, inCurSeqNum);
+                    SSS_printf("TrackID: %d Acking in mask: %d\n", fSDPParser.GetStreamInfo(inTrackIndex)->fTrackID, inCurSeqNum);
 #endif
                     mask |= 1;
                 }
@@ -934,7 +934,7 @@ OS_Error ClientSession::SendReceiverReport(UInt32 inTrackID)
     *(theWriter++) = htonl(0);      // should be a short, but we need to pad to a long for the entire RTCP app packet
 
 #if CLIENT_SESSION_DEBUG
-    qtss_printf("Sending receiver reports.\n");
+    SSS_printf("Sending receiver reports.\n");
 #endif
     // Send the packet
     if (fUDPSocketArray != NULL)
