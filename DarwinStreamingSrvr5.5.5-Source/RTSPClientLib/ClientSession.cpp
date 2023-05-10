@@ -218,7 +218,7 @@ SInt64 ClientSession::Run()
     if (theEvents & ClientSession::kTeardownEvent)
     {
 #if CLIENT_SESSION_DEBUG
-        qtss_printf("Session tearing down immediately.\n");
+        sss_printf("Session tearing down immediately.\n");
 #endif
         fTeardownImmediately = true;
     }
