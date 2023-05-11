@@ -1,35 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       SDPSourceInfo.cpp
-
-    Contains:   Implementation of object defined in .h file
-
-
-*/
-
 #include "SDPSourceInfo.h"
 
 #include "StringParser.h"
@@ -53,17 +21,6 @@ static StrPtrLen    sAutoDisconnectTime("TIME");
 
 SDPSourceInfo::~SDPSourceInfo()
 {
-    // Not reqd as the destructor of the 
-    // base class will take care of delete the stream array
-    // and output array if allocated
-    /* 
-    if (fStreamArray != NULL)
-    {
-        char* theCharArray = (char*)fStreamArray;
-        delete [] theCharArray;
-    }
-    */
-    
     fSDPData.Delete();
 }
 
@@ -81,10 +38,7 @@ char* SDPSourceInfo::GetLocalSDP(UInt32* newSDPLen)
     StrPtrLen sdpLine;
     StringParser sdpParser(&fSDPData);
     char trackIndexBuffer[50];
-    
-    // Only generate our own trackIDs if this file doesn't have 'em.
-    // Our assumption here is that either the file has them, or it doesn't.
-    // A file with some trackIDs, and some not, won't work.
+
     Bool16 hasControlLine = false;
 
     while (sdpParser.GetDataRemaining() > 0)
@@ -185,9 +139,6 @@ char* SDPSourceInfo::GetLocalSDP(UInt32* newSDPLen)
 
 void SDPSourceInfo::Parse(char* sdpData, UInt32 sdpLen)
 {
-    //
-    // There are some situations in which Parse can be called twice.
-    // If that happens, just return and don't do anything the second time.
     if (fSDPData.Ptr != NULL)
         return;
         
@@ -199,21 +150,16 @@ void SDPSourceInfo::Parse(char* sdpData, UInt32 sdpLen)
     memcpy(sdpDataCopy,sdpData, sdpLen);
     fSDPData.Set(sdpDataCopy, sdpLen);
 
-    // If there is no trackID information in this SDP, we make the track IDs start
-    // at 1 -> N
     UInt32 currentTrack = 1;
     
     Bool16 hasGlobalStreamInfo = false;
-    StreamInfo theGlobalStreamInfo; //needed if there is one c= header independent of
-                                    //individual streams
+    StreamInfo theGlobalStreamInfo; 
 
     StrPtrLen sdpLine;
     StringParser trackCounter(&fSDPData);
     StringParser sdpParser(&fSDPData);
     UInt32 theStreamIndex = 0;
 
-    //walk through the SDP, counting up the number of tracks
-    // Repeat until there's no more data in the SDP
     while (trackCounter.GetDataRemaining() > 0)
     {
         //each 'm' line in the SDP file corresponds to another track.
@@ -222,19 +168,15 @@ void SDPSourceInfo::Parse(char* sdpData, UInt32 sdpLen)
             fNumStreams++;  
     }
 
-    //We should scale the # of StreamInfos to the # of trax, but we can't because
-    //of an annoying compiler bug...
     
     fStreamArray = NEW StreamInfo[fNumStreams];
 
     // set the default destination as our default IP address and set the default ttl
     theGlobalStreamInfo.fDestIPAddr = INADDR_ANY;
     theGlobalStreamInfo.fTimeToLive = kDefaultTTL;
-        
-    //Set bufferdelay to default of 3
+
     theGlobalStreamInfo.fBufferDelay = (Float32) eDefaultBufferDelay;
     
-    //Now actually get all the data on all the streams
     while (sdpParser.GetDataRemaining() > 0)
     {
         sdpParser.GetThruEOL(&sdpLine);
@@ -310,10 +252,7 @@ void SDPSourceInfo::Parse(char* sdpData, UInt32 sdpLen)
 
                 if (aLineType.Equal(sBroadcastControlStr))
 
-                {   // found a control line for the broadcast (delete at time or delete at end of broadcast/server startup) 
-
-                    // qtss_printf("found =%s\n",sBroadcastControlStr);
-
+                {   
                     aParser.ConsumeUntil(NULL,StringParser::sWordMask);
 
                     StrPtrLen sessionControlType;
@@ -338,17 +277,13 @@ void SDPSourceInfo::Parse(char* sdpData, UInt32 sdpLen)
                     
                 if (aLineType.Equal(sRtpMapStr))
                 {
-                    //mark the codec type if this line has a codec name on it. If we already
-                    //have a codec type for this track, just ignore this line
                     if ((fStreamArray[theStreamIndex - 1].fPayloadName.Len == 0) &&
                         (aParser.GetThru(NULL, ' ')))
                     {
                         StrPtrLen payloadNameFromParser;
                         (void)aParser.GetThruEOL(&payloadNameFromParser);
                                                 char* temp = payloadNameFromParser.GetAsCString();
-//                                                qtss_printf("payloadNameFromParser (%x) = %s\n", temp, temp);
                         (fStreamArray[theStreamIndex - 1].fPayloadName).Set(temp, payloadNameFromParser.Len);
-//                                                qtss_printf("%s\n", fStreamArray[theStreamIndex - 1].fPayloadName.Ptr);
                     }
                 }
                 else if (aLineType.Equal(sControlStr))
