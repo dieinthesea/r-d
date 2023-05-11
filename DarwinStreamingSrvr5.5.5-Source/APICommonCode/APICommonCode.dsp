@@ -1,9 +1,3 @@
-# Microsoft Developer Studio Project File - Name="APICommonCode" - Package Owner=<4>
-# Microsoft Developer Studio Generated Build File, Format Version 6.00
-# ** DO NOT EDIT **
-
-# TARGTYPE "Win32 (x86) Static Library" 0x0104
-
 CFG=APICommonCode - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
