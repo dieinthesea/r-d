@@ -1,34 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       QTSSModuleUtils.cpp
-
-    Contains:   Implements utility routines defined in QTSSModuleUtils.h.
-                    
-*/
-
 #include "QTSSModuleUtils.h"
 #include "QTSS_Private.h"
 
@@ -193,19 +162,13 @@ char* QTSSModuleUtils::GetFullPath( QTSS_RTSPRequestObject inRequest,
     Assert(outLen != NULL);
     
 	(void)QTSS_LockObject(inRequest);
-    // Get the proper file path attribute. This may return an error if
-    // the file type is qtssFilePathTrunc attr, because there may be no path
-    // once its truncated. That's ok. In that case, we just won't append a path.
+
     StrPtrLen theFilePath;
     (void)QTSS_GetValuePtr(inRequest, whichFileType, 0, (void**)&theFilePath.Ptr, &theFilePath.Len);
 		
     StrPtrLen theRootDir;
     QTSS_Error theErr = QTSS_GetValuePtr(inRequest, qtssRTSPReqRootDir, 0, (void**)&theRootDir.Ptr, &theRootDir.Len);
 	Assert(theErr == QTSS_NoErr);
-
-
-    //trim off extra / characters before concatenating
-    // so root/ + /path instead of becoming root//path  is now root/path  as it should be.
     
 	if (theRootDir.Len && theRootDir.Ptr[theRootDir.Len -1] == kPathDelimiterChar
 	    && theFilePath.Len  && theFilePath.Ptr[0] == kPathDelimiterChar)
@@ -221,15 +184,12 @@ char* QTSSModuleUtils::GetFullPath( QTSS_RTSPRequestObject inRequest,
 	    }
 	}
 
-    //construct a full path out of the root dir path for this request,
-    //and the url path.
     *outLen = theFilePath.Len + theRootDir.Len + 2;
     if (suffix != NULL)
         *outLen += suffix->Len;
     
     char* theFullPath = NEW char[*outLen];
-    
-    //write all the pieces of the path into this new buffer.
+
     StringFormatter thePathFormatter(theFullPath, *outLen);
     thePathFormatter.Put(theRootDir);
     thePathFormatter.Put(theFilePath);
@@ -248,15 +208,12 @@ QTSS_Error  QTSSModuleUtils::AppendRTPMetaInfoHeader(   QTSS_RTSPRequestObject i
                                                         StrPtrLen* inRTPMetaInfoHeader,
                                                         RTPMetaInfoPacket::FieldID* inFieldIDArray)
 {
-    //
-    // For formatting the response header
+
     char tempBuffer[128];
     ResizeableStringFormatter theFormatter(tempBuffer, 128);
     
     StrPtrLen theHeader(*inRTPMetaInfoHeader);
-    
-    //
-    // For marking which fields were requested by the client
+   
     Bool16 foundFieldArray[RTPMetaInfoPacket::kNumFields];
     ::memset(foundFieldArray, 0, sizeof(Bool16) * RTPMetaInfoPacket::kNumFields);
     
@@ -269,10 +226,7 @@ QTSS_Error  QTSSModuleUtils::AppendRTPMetaInfoHeader(   QTSS_RTSPRequestObject i
         ::memcpy (&fieldNameValue, theFieldName, sizeof(UInt16));
 
         RTPMetaInfoPacket::FieldIndex theFieldIndex = RTPMetaInfoPacket::GetFieldIndexForName(ntohs(fieldNameValue));
-        
-        //
-        // This field is not supported (not in the field ID array), so
-        // don't put it in the response
+  
         if ((theFieldIndex == RTPMetaInfoPacket::kIllegalField) ||
             (inFieldIDArray[theFieldIndex] == RTPMetaInfoPacket::kFieldNotUsed))
         {
@@ -280,49 +234,34 @@ QTSS_Error  QTSSModuleUtils::AppendRTPMetaInfoHeader(   QTSS_RTSPRequestObject i
             continue;
         }
         
-        //
-        // Mark that this field has been requested by the client
         foundFieldArray[theFieldIndex] = true;
-        
-        //
-        // This field is good to go... put it in the response   
+
         theFormatter.Put(theHeader.Ptr, sizeof(RTPMetaInfoPacket::FieldName));
         
         if (inFieldIDArray[theFieldIndex] != RTPMetaInfoPacket::kUncompressed)
         {
-            //
-            // If the caller wants this field to be compressed (there
-            // is an ID associated with the field), put the ID in the response
+
             theFormatter.PutChar('=');
             theFormatter.Put(inFieldIDArray[theFieldIndex]);
         }
         
-        //
-        // Field separator
+
         theFormatter.PutChar(';');
             
-        //
-        // Skip onto the next field name in the header
+
         theHeader.Ptr += 3;
     }
 
-    //
-    // Go through the caller's FieldID array, and turn off the fields
-    // that were not requested by the client.
+
     for (UInt32 x = 0; x < RTPMetaInfoPacket::kNumFields; x++)
     {
         if (!foundFieldArray[x])
             inFieldIDArray[x] = RTPMetaInfoPacket::kFieldNotUsed;
     }
-    
-    //
-    // No intersection between requested headers and supported headers!
+
     if (theFormatter.GetCurrentOffset() == 0)
         return QTSS_ValueNotFound; // Not really the greatest error!
-        
-    //
-    // When appending the header to the response, strip off the last ';'.
-    // It's not needed.
+
     return QTSS_AppendRTSPHeader(inRequest, qtssXRTPMetaInfoHeader, theFormatter.GetBufPtr(), theFormatter.GetCurrentOffset() - 1);
 }
 
@@ -347,16 +286,12 @@ QTSS_Error  QTSSModuleUtils::SendErrorResponse( QTSS_RTSPRequestObject inRequest
 
         if ((theMessage.Ptr == NULL) || (theMessage.Len == 0))
         {
-            // If we couldn't find the specified message, get the default
-            // "No Message" message, and return that to the client instead.
-            
+
             (void)QTSS_GetValuePtr(sMessages, qtssMsgNoMessage, 0, (void**)&theMessage.Ptr, &theMessage.Len);
         }
         Assert(theMessage.Ptr != NULL);
         Assert(theMessage.Len > 0);
-        
-        // Allocate a temporary buffer for the error message, and format the error message
-        // into that buffer
+
         UInt32 theMsgLen = 256;
         if (inStringArg != NULL)
             theMsgLen += inStringArg->Len;
@@ -364,24 +299,20 @@ QTSS_Error  QTSSModuleUtils::SendErrorResponse( QTSS_RTSPRequestObject inRequest
         messageBuffPtr = NEW char[theMsgLen];
         messageBuffPtr[0] = 0;
         theErrorMsgFormatter.Set(messageBuffPtr, theMsgLen);
-        //
-        // Look for a %s in the string, and if one exists, replace it with the
-        // argument passed into this function.
-        
-        //we can safely assume that message is in fact NULL terminated
+
         char* stringLocation = ::strstr(theMessage.Ptr, "%s");
         if (stringLocation != NULL)
         {
-            //write first chunk
+
             theErrorMsgFormatter.Put(theMessage.Ptr, stringLocation - theMessage.Ptr);
             
             if (inStringArg != NULL && inStringArg->Len > 0)
             {
-                //write string arg if it exists
+
                 theErrorMsgFormatter.Put(inStringArg->Ptr, inStringArg->Len);
                 stringLocation += 2;
             }
-            //write last chunk
+
             theErrorMsgFormatter.Put(stringLocation, (theMessage.Ptr + theMessage.Len) - stringLocation);
         }
         else
@@ -393,13 +324,8 @@ QTSS_Error  QTSSModuleUtils::SendErrorResponse( QTSS_RTSPRequestObject inRequest
         (void)QTSS_AppendRTSPHeader(inRequest, qtssContentLengthHeader, buff, ::strlen(buff));
     }
     
-    //send the response header. In all situations where errors could happen, we
-    //don't really care, cause there's nothing we can do anyway!
     (void)QTSS_SendRTSPHeaders(inRequest);
 
-    //
-    // Now that we've formatted the message into the temporary buffer,
-    // write it out to the request stream and the Client Session object
     (void)QTSS_Write(inRequest, theErrorMsgFormatter.GetBufPtr(), theErrorMsgFormatter.GetBytesWritten(), NULL, 0);
     (void)QTSS_SetValue(inRequest, qtssRTSPReqRespMsg, 0, theErrorMsgFormatter.GetBufPtr(), theErrorMsgFormatter.GetBytesWritten());
     
@@ -421,8 +347,6 @@ QTSS_Error	QTSSModuleUtils::SendErrorResponseWithMessage( QTSS_RTSPRequestObject
     if (sEnableRTSPErrorMsg)
     {
 		Assert(inErrorMessagePtr != NULL);
-		//Assert(inErrorMessagePtr->Ptr != NULL);
-		//Assert(inErrorMessagePtr->Len != 0);
 		theErrorMessage.Set(inErrorMessagePtr->Ptr, inErrorMessagePtr->Len);
 		
         char buff[32];
@@ -430,13 +354,9 @@ QTSS_Error	QTSSModuleUtils::SendErrorResponseWithMessage( QTSS_RTSPRequestObject
         (void)QTSS_AppendRTSPHeader(inRequest, qtssContentLengthHeader, buff, ::strlen(buff));
     }
     
-    //send the response header. In all situations where errors could happen, we
-    //don't really care, cause there's nothing we can do anyway!
+
     (void)QTSS_SendRTSPHeaders(inRequest);
 
-    //
-    // Now that we've formatted the message into the temporary buffer,
-    // write it out to the request stream and the Client Session object
     (void)QTSS_Write(inRequest, theErrorMessage.Ptr, theErrorMessage.Len, NULL, 0);
     (void)QTSS_SetValue(inRequest, qtssRTSPReqRespMsg, 0, theErrorMessage.Ptr, theErrorMessage.Len);
     
@@ -464,8 +384,6 @@ QTSS_Error	QTSSModuleUtils::SendHTTPErrorResponse( QTSS_RTSPRequestObject inRequ
     static const int maxMessageBufferChars = sizeof(messageLineBuffer) -1;
     messageLineBuffer[maxMessageBufferChars] = 0; // guarantee termination
 
-    // ToDo: put in a more meaningful http error message for each error. Not required by spec.
-    // ToDo: maybe use the HTTP protcol class static error strings.
     char* errorMsg = "error"; 
 
     DateBuffer theDate;
@@ -531,9 +449,6 @@ QTSS_Error	QTSSModuleUtils::SendHTTPErrorResponse( QTSS_RTSPRequestObject inRequ
         theErrorMessage.Put(bodyMessage.GetBufPtr(),bodyMessage.GetBytesWritten());
     }
 
-    //
-    // Now that we've formatted the message into the temporary buffer,
-    // write it out to the request stream and the Client Session object
     (void)QTSS_Write(inRequest, theErrorMessage.GetBufPtr(), theErrorMessage.GetBytesWritten(), NULL, 0);
     (void)QTSS_SetValue(inRequest, qtssRTSPReqRespMsg, 0, theErrorMessage.GetBufPtr(), theErrorMessage.GetBytesWritten());
     
@@ -553,9 +468,6 @@ void    QTSSModuleUtils::SendDescribeResponse(QTSS_RTSPRequestObject inRequest,
 
     (void)QTSS_SendStandardRTSPResponse(inRequest, inSession, 0);
 
-        // On solaris, the maximum # of vectors is very low (= 16) so to ensure that we are still able to
-        // send the SDP if we have a number greater than the maximum allowed, we coalesce the vectors into
-        // a single big buffer
 #ifdef __solaris__
     if (inNumVectors > IOV_MAX )
     {
@@ -639,30 +551,21 @@ QTSS_ModulePrefsObject QTSSModuleUtils::GetModuleObjectByName(const StrPtrLen& i
 void    QTSSModuleUtils::GetAttribute(QTSS_Object inObject, char* inAttributeName, QTSS_AttrDataType inType, 
                                                 void* ioBuffer, void* inDefaultValue, UInt32 inBufferLen)
 {
-    //
-    // Check to make sure this attribute is the right type. If it's not, this will coerce
-    // it to be the right type. This also returns the id of the attribute
+
     QTSS_AttributeID theID = QTSSModuleUtils::CheckAttributeDataType(inObject, inAttributeName, inType, inDefaultValue, inBufferLen);
 
-    //
-    // Get the attribute value.
     QTSS_Error theErr = QTSS_GetValue(inObject, theID, 0, ioBuffer, &inBufferLen);
-    
-    //
-    // Caller should KNOW how big this attribute is
+
     Assert(theErr != QTSS_NotEnoughSpace);
     
     if (theErr != QTSS_NoErr)
     {
-        //
-        // If we couldn't get the attribute value for whatever reason, just use the
-        // default if it was provided.
+
         ::memcpy(ioBuffer, inDefaultValue, inBufferLen);
 
         if (inBufferLen > 0)
         {
-            //
-            // Log an error for this pref only if there was a default value provided.
+
             char* theValueAsString = NULL;
             theErr = QTSS_ValueToString(inDefaultValue, inBufferLen, inType, &theValueAsString);
             Assert(theErr == QTSS_NoErr);
@@ -685,10 +588,7 @@ char*   QTSSModuleUtils::GetStringAttribute(QTSS_Object inObject, char* inAttrib
     UInt32 theDefaultValLen = 0;
     if (inDefaultValue != NULL)
         theDefaultValLen = ::strlen(inDefaultValue);
-    
-    //
-    // Check to make sure this attribute is the right type. If it's not, this will coerce
-    // it to be the right type
+
     QTSS_AttributeID theID = QTSSModuleUtils::CheckAttributeDataType(inObject, inAttributeName, qtssAttrDataTypeCharArray, inDefaultValue, theDefaultValLen);
 
     char* theString = NULL;
@@ -696,14 +596,8 @@ char*   QTSSModuleUtils::GetStringAttribute(QTSS_Object inObject, char* inAttrib
     if (theString != NULL)
         return theString;
     
-    //
-    // If we get here the attribute must be missing, so create it and log
-    // an error.
-    
     QTSSModuleUtils::CreateAttribute(inObject, inAttributeName, qtssAttrDataTypeCharArray, inDefaultValue, theDefaultValLen);
-    
-    //
-    // Return the default if it was provided. Only log an error if the default value was provided
+
     if (theDefaultValLen > 0)
     {
         QTSSModuleUtils::LogError(  sMissingPrefVerbosity,
@@ -715,11 +609,7 @@ char*   QTSSModuleUtils::GetStringAttribute(QTSS_Object inObject, char* inAttrib
     
     if (inDefaultValue != NULL)
     {
-        //
-        // Whether to return the default value or not from this function is dependent
-        // solely on whether the caller passed in a non-NULL pointer or not.
-        // This ensures that if the caller wants an empty-string returned as a default
-        // value, it can do that.
+
         theString = NEW char[theDefaultValLen + 1];
         ::strcpy(theString, inDefaultValue);
         return theString;
@@ -740,8 +630,7 @@ void    QTSSModuleUtils::GetIOAttribute(QTSS_Object inObject, char* inAttributeN
 
 QTSS_AttributeID QTSSModuleUtils::GetAttrID(QTSS_Object inObject, char* inAttributeName)
 {
-    //
-    // Get the attribute ID of this attribute.
+
     QTSS_Object theAttrInfo = NULL;
     QTSS_Error theErr = QTSS_GetAttrInfoByName(inObject, inAttributeName, &theAttrInfo);
     if (theErr != QTSS_NoErr)
