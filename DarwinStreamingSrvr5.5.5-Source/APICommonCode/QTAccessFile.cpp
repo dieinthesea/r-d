@@ -1,34 +1,3 @@
-/*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
-/*
-    File:       QTAccessFile.cpp
-
-    Contains:   This file contains the implementation for finding and parsing qtaccess files.
-                
-
-*/
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -298,8 +267,6 @@ char*  QTAccessFile::GetAccessFile_Copy( const char* movieRootDir, const char* d
     return NULL;
 }
 
-// allocates memory for outUsersFilePath and outGroupsFilePath - remember to delete
-// returns the auth scheme
 QTSS_AuthScheme QTAccessFile::FindUsersAndGroupsFilesAndAuthScheme(char* inAccessFilePath, QTSS_ActionFlags inAction, char** outUsersFilePath, char** outGroupsFilePath)
 {
     QTSS_AuthScheme authScheme = qtssAuthNone;
@@ -310,8 +277,6 @@ QTSS_AuthScheme QTAccessFile::FindUsersAndGroupsFilesAndAuthScheme(char* inAcces
         
     *outUsersFilePath = NULL;
     *outGroupsFilePath = NULL;
-    //Assert(outUsersFilePath == NULL);
-    //Assert(outGroupsFilePath == NULL);
     
     StrPtrLen accessFileBuf;
     (void)QTSSModuleUtils::ReadEntireFile(inAccessFilePath, &accessFileBuf);
@@ -368,10 +333,10 @@ QTSS_AuthScheme QTAccessFile::FindUsersAndGroupsFilesAndAuthScheme(char* inAcces
     {
                 lineParser.ConsumeWhitespace();
                 lineParser.GetThruEOL(&word);
-                StringParser::UnQuote(&word);// if the parsed string is surrounded by quotes then remove them.
+                StringParser::UnQuote(&word);
         
-                if(*outUsersFilePath != NULL)       // we are encountering the AuthUserFile keyword twice!
-                    delete[] *outUsersFilePath; // The last one found takes precedence...delete the previous path
+                if(*outUsersFilePath != NULL)       
+                    delete[] *outUsersFilePath; 
                 
                 *outUsersFilePath = word.GetAsCString();
         continue;
@@ -381,10 +346,10 @@ QTSS_AuthScheme QTAccessFile::FindUsersAndGroupsFilesAndAuthScheme(char* inAcces
         {
             lineParser.ConsumeWhitespace();
             lineParser.GetThruEOL(&word);
-            StringParser::UnQuote(&word);// if the parsed string is surrounded by quotes then remove them.
+            StringParser::UnQuote(&word);
 
-            if(*outGroupsFilePath != NULL)      // we are encountering the AuthGroupFile keyword twice!
-                delete[] *outGroupsFilePath;    // The last one found takes precedence...delete the previous path       
+            if(*outGroupsFilePath != NULL)      
+                delete[] *outGroupsFilePath;      
         *outGroupsFilePath = word.GetAsCString();
         continue;
         }
@@ -393,7 +358,7 @@ QTSS_AuthScheme QTAccessFile::FindUsersAndGroupsFilesAndAuthScheme(char* inAcces
         {
             lineParser.ConsumeWhitespace();
             lineParser.GetThruEOL(&word);
-            StringParser::UnQuote(&word);// if the parsed string is surrounded by quotes then remove them.
+            StringParser::UnQuote(&word);
 
             if (word.Equal("basic"))
                 authScheme = qtssAuthBasic;
@@ -413,17 +378,14 @@ QTSS_Error QTAccessFile::AuthorizeRequest(QTSS_StandardRTSP_Params* inParams, Bo
         return QTSS_RequestFailed;
 
     QTSS_RTSPRequestObject  theRTSPRequest = inParams->inRTSPRequest;
-    
-    // get the type of request
-    // Don't touch write requests
+
     QTSS_ActionFlags action = QTSSModuleUtils::GetRequestActions(theRTSPRequest);
     if(action == qtssActionFlagsNoFlags)
         return QTSS_RequestFailed;
     
     if( (action & noAction) != 0)
-        return QTSS_NoErr; // we don't handle
+        return QTSS_NoErr; 
     
-    //get the local file path
     char*   pathBuffStr = QTSSModuleUtils::GetLocalPath_Copy(theRTSPRequest);
     OSCharArrayDeleter pathBuffDeleter(pathBuffStr);
     if (NULL == pathBuffStr)
@@ -442,7 +404,7 @@ QTSS_Error QTAccessFile::AuthorizeRequest(QTSS_StandardRTSP_Params* inParams, Bo
     char* accessFilePath = QTAccessFile::GetAccessFile_Copy(movieRootDirStr, pathBuffStr);
     OSCharArrayDeleter accessFilePathDeleter(accessFilePath);
     
-    if (NULL == accessFilePath) // we are done nothing to do
+    if (NULL == accessFilePath) 
     {   if (QTSS_NoErr != QTSS_SetValue(theRTSPRequest,qtssRTSPReqUserAllowed, 0, &allowNoAccessFiles, sizeof(allowNoAccessFiles)))
             return QTSS_RequestFailed; // Bail on the request. The Server will handle the error
         return QTSS_NoErr;
@@ -487,7 +449,6 @@ QTSS_Error QTAccessFile::AuthorizeRequest(QTSS_StandardRTSP_Params* inParams, Bo
         }
     }
     
-    // We are denying the request so pass false back to the server.
     if (QTSS_NoErr != QTSS_SetValue(theRTSPRequest,qtssRTSPReqUserAllowed, 0, &allowRequest, sizeof(allowRequest)))
         return QTSS_RequestFailed; // Bail on the request. The Server will handle the error
 
