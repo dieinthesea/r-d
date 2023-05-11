@@ -1,17 +1,3 @@
-/*
- This class provides a number of methods to open, close, write and scroll log files. 
- It also defines a number of static member variables and static methods to help manage the scrolling and timestamp formatting of log files.
-*/
-/*
-    File:       QTSSRollingLog.h
-
-    Contains:   A log toolkit, log can roll either by time or by size, clients
-                must derive off of this object ot provide configuration information. 
-
-
-
-*/
-
 #ifndef __QTSS_ROLLINGLOG_H__
 #define __QTSS_ROLLINGLOG_H__
 
@@ -29,27 +15,18 @@ const Bool16 kAllowLogToRoll = true;
 class QTSSRollingLog : public Task
 {
     public:
-    
-        //pass in whether you'd like the log roller to log errors.
+
         QTSSRollingLog();
-        
-        // Call this to delete. Closes the log and sends a kill event
+
         void    Delete()
             { CloseLog(false); this->Signal(Task::kKillEvent); }
-        
-        // Write a log message
-        void    WriteToLog(char* inLogData, Bool16 allowLogToRoll);
-        
-        //log rolls automatically based on the configuration criteria,
-        //but you may roll the log manually by calling this function.
-        //Returns true if no error, false otherwise
-        Bool16  RollLog();
 
-        // Call this to open the log file and begin logging     
+        void    WriteToLog(char* inLogData, Bool16 allowLogToRoll);
+
+        Bool16  RollLog();
+   
         void EnableLog( Bool16 appendDotLog = true);
-        
-        // Call this to close the log
-        // (pass leaveEnabled as true when we are temporarily closing.)
+
         void CloseLog( Bool16 leaveEnabled = false);
 
         //mainly to check and see if errors occurred
@@ -59,12 +36,9 @@ class QTSSRollingLog : public Task
         Bool16  IsLogging() { return fLogging; }
         void  SetLoggingEnabled( Bool16 logState ) { fLogging = logState; }
         
-        //General purpose utility function
-        //returns false if some error has occurred
+        //General purpose utility function returns false if some error has occurred
         static Bool16   FormatDate(char *ioDateBuffer, Bool16 logTimeInGMT);
-        
-        // Check the log to see if it needs to roll
-        // (rolls the log if necessary)
+
         Bool16          CheckRollLog();
         
         // Set this to true to get the log to close the file between writes.
@@ -106,8 +80,7 @@ class QTSSRollingLog : public Task
         static void     ResetToMidnight(time_t* inTimePtr, time_t* outTimePtr);
         char*           GetLogPath(char *extension);
         
-        // To make sure what happens in Run doesn't also happen at the same time
-        // in the public functions.
+        // To make sure what happens in Run doesn't also happen at the same time in the public functions.
         OSMutex         fMutex;
 };
 
