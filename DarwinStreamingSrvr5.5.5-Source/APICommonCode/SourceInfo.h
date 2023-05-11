@@ -1,22 +1,3 @@
-/*
-A class called "SourceInfo" is defined which contains metadata for some media streams.
-These streams can be recorded, repeated and/or forwarded to other locations.
-This class provides a number of methods to obtain and set this metadata.
-Examples include getting and setting the IP address and port number of the stream, getting and setting the timestamp of the stream, etc.
-In addition, the class has a number of helper functions, such as determining whether an IP address is reflectable or not.
-*/
-/*
-    File:       SourceInfo.h
-
-    Contains:   This object contains an interface for getting at any bit
-                of "interesting" information regarding a content source in a
-                format - independent manner.
-                
-                For instance, the derived object SDPSourceInfo parses an
-                SDP file and retrieves all the SourceInfo information from that file.
-
-*/
-
 #ifndef __SOURCE_INFO_H__
 #define __SOURCE_INFO_H__
 
@@ -44,8 +25,7 @@ class SourceInfo
         // Returns whether this source is reflectable.
         Bool16  IsReflectable();
 
-        // Each source is comprised of a set of streams. Those streams have
-        // the following metadata.
+        // Each source is comprised of a set of streams. Those streams have the following metadata.
         struct StreamInfo
         {
             StreamInfo() : fSrcIPAddr(0), fDestIPAddr(0), fPort(0), fTimeToLive(0), fPayloadType(0), fPayloadName(NULL), fTrackID(0), fBufferDelay((Float32) eDefaultBufferDelay), fIsTCP(false),fSetupToReceive(false), fTimeScale(0){}
@@ -65,17 +45,11 @@ class SourceInfo
             Bool16  fSetupToReceive;    // If true then a push to the server is setup on this stream.
             UInt32  fTimeScale;
         };
-        
-        // Returns the number of StreamInfo objects (number of Streams in this source)
+
         UInt32      GetNumStreams() { return fNumStreams; }
         StreamInfo* GetStreamInfo(UInt32 inStreamIndex);
         StreamInfo* GetStreamInfoByTrackID(UInt32 inTrackID);
-         
-        // If this source is to be Relayed, it may have "Output" information. This
-        // tells the reader where to forward the incoming streams onto. There may be
-        // 0 -> N OutputInfo objects in this SourceInfo. Each OutputInfo refers to a
-        // single, complete copy of ALL the input streams. The fPortArray field
-        // contains one RTP port for each incoming stream.
+
         struct OutputInfo
         {
             OutputInfo() : fDestAddr(0), fLocalAddr(0), fTimeToLive(0), fPortArray(NULL), fNumPorts(0), fBasePort(0), fAlreadySetup(false) {}
@@ -100,11 +74,7 @@ class SourceInfo
         UInt32      GetNumNewOutputs(); // Returns # of outputs not already setup
 
         OutputInfo* GetOutputInfo(UInt32 inOutputIndex);
-        
-        // GetLocalSDP. This may or may not be supported by sources. Typically, if
-        // the source is reflectable, this must be supported. It returns a newly
-        // allocated buffer (that the caller is responsible for) containing an SDP
-        // description of the source, stripped of all network info.
+
         virtual char*   GetLocalSDP(UInt32* /*newSDPLen*/) { return NULL; }
         
         // This is only supported by the RTSPSourceInfo sub class
@@ -114,9 +84,7 @@ class SourceInfo
                 virtual char*   Name()  { return NULL; }
                 
         virtual Bool16 Equal(SourceInfo* inInfo);
-        
-        // SDP scheduled times supports earliest start and latest end -- doesn't handle repeat times or multiple active times.
-        #define kNTP_Offset_From_1970 2208988800LU
+
         time_t  NTPSecs_to_UnixSecs(time_t time) {return (time_t) (time - (UInt32)kNTP_Offset_From_1970);}
         UInt32  UnixSecs_to_NTPSecs(time_t time) {return (UInt32) (time + (UInt32)kNTP_Offset_From_1970);}
         Bool16  SetActiveNTPTimes(UInt32 startNTPTime,UInt32 endNTPTime);
