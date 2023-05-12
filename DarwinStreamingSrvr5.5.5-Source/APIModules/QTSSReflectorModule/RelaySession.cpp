@@ -1,33 +1,17 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+Used to register and initialize the class, 
+as well as to create and set the value of the RelaySession object. 
+Among other things, the SetupRelaySession() function 
+sets the RelaySession object property's based on information from the SourceInfo object. 
+The class also includes a destructor function that assumes 
+that the RelaySession object is removed from its module properties object 
+when the object is no longer needed.
+*/
 /*
     File:       RelaySession.cpp
 
     Contains:   Implementation of object defined in RelaySession.h. 
-                    
-    
+
 
 */
 
@@ -114,24 +98,19 @@ void RelaySession::Register()
     (void)QTSS_AddStaticAttribute(qtssRelaySessionObjectType, sRelayOutputObjectName, NULL, qtssAttrDataTypeQTSS_Object);
     (void)QTSS_IDForAttr(qtssRelaySessionObjectType, sRelayOutputObjectName, &sRelayOutputObject);  // relay output
         
-    //char* strEnd        = NULL;
+    
     char* relayStr = "QTSS_Relay/";
-    //kVersionString is changed now -- it doesn't contain any spaces or the build number
-    //strEnd = strchr(kVersionString, ' ');
-    //Assert(strEnd != NULL);
+
 #ifndef __Win32__
-    //qtss_snprintf(sRelayUserAgent, ::strlen(relayStr) + (strEnd - kVersionString) + 1, "%s/%s", relayStr, kVersionString);
     qtss_snprintf(sRelayUserAgent, ::strlen(relayStr) + ::strlen(kVersionString) + 1, "%s%s", relayStr, kVersionString);
 #else
-    //_snprintf(sRelayUserAgent, ::strlen(relayStr) + (strEnd - kVersionString) + 1, "%s/%s", relayStr, kVersionString);
     _snprintf(sRelayUserAgent, ::strlen(relayStr) + ::strlen(kVersionString) + 1, "%s%s", relayStr, kVersionString);
 #endif        
 }
 
 void RelaySession::Initialize(QTSS_Object inRelayModuleAttributesObject)
 {
-    ReflectorSession::Initialize();
-    
+    ReflectorSession::Initialize();    
     if (inRelayModuleAttributesObject != NULL)
         {
         relayModuleAttributesObject = inRelayModuleAttributesObject;
@@ -168,7 +147,6 @@ QTSS_Error RelaySession::SetupRelaySession(SourceInfo* inInfo)
         else
             theErr = QTSS_SetValue (fRelaySessionObject, sRelayName, 0, (void*)sEmptyStr.Ptr, sEmptyStr.Len);
         Assert(theErr == QTSS_NoErr);
-
 
     StrPtrLen sourceStr;            // type of source
 
@@ -239,7 +217,6 @@ QTSS_Error RelaySession::SetupRelaySession(SourceInfo* inInfo)
         
         theErr = QTSS_UnlockObject(relayModuleAttributesObject);
         Assert(theErr == QTSS_NoErr);
-        
         return QTSS_NoErr;
 }
 
@@ -260,10 +237,3 @@ RelaySession::~RelaySession()
         }
     }
 }
-
-
-
-
-
-
-
