@@ -1,34 +1,15 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+The main implementation is a sequence number mapping function. 
+In this code, a class named SequenceNumberMap is implemented which stores a sliding window of size inSlidingWindowSize, 
+and then maps these sequence numbers to different positions of the sliding window in the order of sequence numbers. 
+The AddSequenceNumber method in the code is used to add a new sequence number to the mapping table, 
+returning true if the sequence number has already been added and false otherwise.
+in addition, a method called Test is implemented in the code to test the correctness of the AddSequenceNumber method.
+*/
 /*
     File:       SequenceNumberMap.cpp
 
-    Contains:   Implements object defined in SequenceNumberMap.h.
-                    
-    
-    
+    Contains:   Implements object defined in SequenceNumberMap.h.   
 
 */
 
@@ -46,15 +27,13 @@ SequenceNumberMap::SequenceNumberMap(UInt32 inSlidingWindowSize)
     fHighestSeqNumber(0)
 {
     Assert(fNegativeWindowSize < 0);
-    Assert(fWindowSize < 32768);//AddSequenceNumber makes this assumption
-    
+    Assert(fWindowSize < 32768);//AddSequenceNumber makes this assumption    
 }
 
 Bool16 SequenceNumberMap::AddSequenceNumber(UInt16 inSeqNumber)
 {
-    // Returns whether sequence number has already been added.
-    
-    //Check to see if object has been initialized
+    // Returns whether sequence number has already been added.    
+    // Check to see if object has been initialized
     if (fSlidingWindow == NULL)
     {
         fSlidingWindow = NEW Bool16[fWindowSize + 1];
@@ -71,8 +50,9 @@ Bool16 SequenceNumberMap::AddSequenceNumber(UInt16 inSeqNumber)
     if (theWindowOffset < fNegativeWindowSize)
         return false;//We don't know, but for safety, assume we haven't seen it.
         
-    // If this seq # is higher thn the highest previous, set the highest to be this
-    // new sequence number, and zero out our sliding window as we go.
+    // If this seq # is higher thn the highest previous, 
+    // set the highest to be this new sequence number, 
+    // and zero out our sliding window as we go.
     
     while (theWindowOffset > 0)
     {
@@ -86,8 +66,8 @@ Bool16 SequenceNumberMap::AddSequenceNumber(UInt16 inSeqNumber)
         theWindowOffset--;
     }
 
-    // Find the right entry in the sliding window for this sequence number, taking
-    // into account that we may need to wrap.
+    // Find the right entry in the sliding window for this sequence number, 
+    // taking into account that we may need to wrap.
     
     SInt32 theWindowIndex = fHighestSeqIndex + theWindowOffset;
     if (theWindowIndex < 0)
@@ -101,7 +81,7 @@ Bool16 SequenceNumberMap::AddSequenceNumber(UInt16 inSeqNumber)
     fSlidingWindow[theWindowIndex] = true;
 #if SEQUENCENUMBERMAPTESTING
     //if (alreadyAdded)
-    //  qtss_printf("Found a duplicate seq num. Num = %d\n", inSeqNumber);
+    // qtss_printf("Found a duplicate seq num. Num = %d\n", inSeqNumber);
 #endif
     return alreadyAdded;
 }
