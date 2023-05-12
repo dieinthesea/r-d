@@ -1,27 +1,17 @@
 /*
- *
- * @APPLE_LICENSE_HEADER_START@
- * 
- * Copyright (c) 1999-2003 Apple Computer, Inc.  All Rights Reserved.
- * 
- * This file contains Original Code and/or Modifications of Original Code
- * as defined in and that are subject to the Apple Public Source License
- * Version 2.0 (the 'License'). You may not use this file except in
- * compliance with the License. Please obtain a copy of the License at
- * http://www.opensource.apple.com/apsl/ and read it before using this
- * file.
- * 
- * The Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
- * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
- * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
- * Please see the License for the specific language governing rights and
- * limitations under the License.
- * 
- * @APPLE_LICENSE_HEADER_END@
- *
- */
+This code defines a class called RelaySDPSourceInfo, 
+which includes a function called Parse. 
+The Parse function is used to parse the SDP data and set the properties of the RelaySession class based on the information in the SDP data.
+In the implementation of the function, two static variables of type StPtrLen are defined, sRelayAddr and sRelayPort, 
+which represent the two key rows contained in the SDP data. 
+Then, based on the information in the SDP data, 
+the SDP data is parsed and the number of StreamInfo and OutputInfo objects that need to be used is counted. 
+In this process, whenever a key line is parsed,
+the data in the key line is parsed out as an attribute of a StreamInfo object (corresponding to key line a=x-qt-relay-port) 
+or an attribute of an OutputInfo object (corresponding to key line a=x-qt-relay-addr).
+After that, the parsed information is recorded in an array in StreamArray and OutputArray,
+and finally the information is assigned to the RelaySession object through these two arrays.
+*/
 /*
     File:       RelaySDPSourceInfo.cpp
 
@@ -42,31 +32,6 @@
 #include <netinet/in.h>
 #endif
 
-RelaySDPSourceInfo::~RelaySDPSourceInfo()
-{
-    // Not necessary anymore as the destructor of the base class will take care
-    // of deleting all allocated memory for fOutputArray and fStreamArray
-    /*
-    if (fOutputArray != NULL)
-    {
-        for (UInt32 x = 0; x < fNumOutputs; x++)
-        {
-            delete [] fOutputArray[x].fPortArray;
-            fOutputArray[x].fNumPorts = 0;
-        }
-            
-        char* theOutputArray = (char*)fOutputArray;
-        delete [] theOutputArray;
-    }
-    if (fStreamArray != NULL)
-    {
-        char* theStreamArray = (char*)fStreamArray;
-        delete [] theStreamArray;
-    }
-    */
-}
-
-
 void    RelaySDPSourceInfo::Parse(StrPtrLen* inSDPData)
 {
     // These are the lines of the SDP file that we are interested in
@@ -84,7 +49,6 @@ void    RelaySDPSourceInfo::Parse(StrPtrLen* inSDPData)
     UInt32 theDestIPAddr = 0;
     UInt16 theDestTtl = 0;
 
-    //
     // FIRST WALK THROUGH SDP
     // The first walk is to count up the number of StreamInfo & OutputInfo
     // objects that we will need.
@@ -99,8 +63,7 @@ void    RelaySDPSourceInfo::Parse(StrPtrLen* inSDPData)
             StringParser relayAddrParser(&sdpLine);
             relayAddrParser.ConsumeUntil(NULL, StringParser::sDigitMask);
             
-            // The first IP addr on this line is the destination IP addr of the
-            // source broadcast.
+            // The first IP addr on this line is the destination IP addr of the source broadcast.
             theDestIPAddr = SDPSourceInfo::GetIPAddr(&relayAddrParser, ' ');
             relayAddrParser.ConsumeWhitespace();
             
@@ -138,12 +101,10 @@ void    RelaySDPSourceInfo::Parse(StrPtrLen* inSDPData)
         return;
     fNumStreams /= 2;
 
-    //
     // CONSTRUCT fStreamInfo AND fOutputInfo ARRAYS
     fStreamArray = NEW StreamInfo[fNumStreams];
     fOutputArray = NEW OutputInfo[fNumOutputs];
     
-    //
     // FILL IN ARRAYS
     
     // Filling in the output addresses is easy because the outputAddrs
